@@ -24,7 +24,11 @@ public class Broj {
         
         ExpressionBuilder builder = new ExpressionBuilder(target, numbers);
         
+        long startTime = System.nanoTime();
         builder.startBuild();
+        long endTime = System.nanoTime();
+        
+        System.out.println("Build time: " + (endTime - startTime) / 1000000000.0 + "s");
 
     }
 

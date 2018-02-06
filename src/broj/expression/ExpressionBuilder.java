@@ -71,11 +71,11 @@ public class ExpressionBuilder {
         }
         return true;
     }
-    
+
     public void printAllSolutions() {
-       System.out.println("----------------------------------");
+        System.out.println("----------------------------------");
         System.out.println("Resenja:");
-        for (Expression e: sol) {
+        for (Expression e : sol) {
             System.out.println(e);
         }
     }
@@ -115,7 +115,7 @@ public class ExpressionBuilder {
                         }
                     }
 
-                    if (ex1.get(i).getValue() > ex2.get(j).getValue()) {        //izbegava se koriscenje nepozitivnih izraza
+                    if ((ex1.get(i).getValue() > ex2.get(j).getValue()) && (ex2.get(j).getPriority() != 1)) {        //izbegava se koriscenje 'nepozitivnih' izraza i oduzimanje zbira ili razlike
                         Expression e3 = new Expression(ex1.get(i), ex2.get(j), "-");
                         exp.add(e3);
                         this.total++;
@@ -124,7 +124,7 @@ public class ExpressionBuilder {
                         }
                     }
 
-                    if (ex2.get(j).getValue() != 1) {       //izbegava se deljenje jedinicom
+                    if ((ex2.get(j).getValue() != 1) && (ex2.get(j).getPriority() != 2)) {       //izbegava se deljenje jedinicom i deljenje proizvodom ili kolicnikom
                         Expression e4 = new Expression(ex1.get(i), ex2.get(j), ":");
                         exp.add(e4);
                         this.total++;
