@@ -57,11 +57,11 @@ public final class Expression {
         
         this.num = exp1.getNum() + exp2.getNum();
       
-        setValidity();
+        //setValidity();
         setIndexes(exp1, exp2);
         
-        System.out.print(toString());
-        printIndexes();
+        //System.out.println(toString());
+        //printIndexes();
     }
     
     public Expression(Integer n, int i) {
@@ -71,10 +71,10 @@ public final class Expression {
         this.num = 1;
         this.indexes.add(i);
         
-        setValidity();
+        //setValidity();
         
-        System.out.print(toString());
-        printIndexes();
+        //System.out.println(toString());
+        //printIndexes();
     }
     
     public String getExpression() {

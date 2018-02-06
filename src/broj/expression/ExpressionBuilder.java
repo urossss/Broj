@@ -13,6 +13,7 @@ public class ExpressionBuilder {
     ArrayList<Expression> exp5 = new ArrayList<>();
     ArrayList<Expression> exp6 = new ArrayList<>();
     Integer total;  //ukupan broj izraza u exp1, exp2... exp6
+    ArrayList<Expression> sol = new ArrayList<>();
 
     //Constructor
     public ExpressionBuilder(Integer target, ArrayList<Integer> numbers) {
@@ -22,46 +23,72 @@ public class ExpressionBuilder {
     }
 
     public void startBuild() {
-        build1();  System.out.println("Total: " + this.total);
-        //build1();
-        buildUni(exp1, exp1, exp2); System.out.println("Total: " + this.total);
-        
-        buildUni(exp1, exp2, exp3); System.out.println("Total: " + this.total);
-        buildUni(exp2, exp1, exp3); System.out.println("Total: " + this.total);
-        
-        buildUni(exp1, exp3, exp4); System.out.println("Total: " + this.total);
-        buildUni(exp3, exp1, exp4); System.out.println("Total: " + this.total);
-        buildUni(exp2, exp2, exp4); System.out.println("Total: " + this.total);
-        
-        buildUni(exp1, exp4, exp5); System.out.println("Total: " + this.total);
-        buildUni(exp4, exp1, exp5); System.out.println("Total: " + this.total);
-        buildUni(exp2, exp3, exp5); System.out.println("Total: " + this.total);
-        buildUni(exp3, exp2, exp5); System.out.println("Total: " + this.total);
-        
-        buildUni(exp1, exp5, exp6); System.out.println("Total: " + this.total);
-        buildUni(exp5, exp1, exp6); System.out.println("Total: " + this.total);
-        buildUni(exp2, exp4, exp6); System.out.println("Total: " + this.total);
-        buildUni(exp4, exp2, exp6); System.out.println("Total: " + this.total);
-        buildUni(exp3, exp3, exp6); System.out.println("Total: " + this.total);
+        build1();
+        System.out.println("Total: " + this.total);
+
+        buildUni(exp1, exp1, exp2);
+        System.out.println("Total: " + this.total);
+
+        buildUni(exp1, exp2, exp3);
+        System.out.println("Total: " + this.total);
+        buildUni(exp2, exp1, exp3);
+        System.out.println("Total: " + this.total);
+
+        buildUni(exp1, exp3, exp4);
+        System.out.println("Total: " + this.total);
+        buildUni(exp3, exp1, exp4);
+        System.out.println("Total: " + this.total);
+        buildUni(exp2, exp2, exp4);
+        System.out.println("Total: " + this.total);
+
+        buildUni(exp1, exp4, exp5);
+        System.out.println("Total: " + this.total);
+        buildUni(exp4, exp1, exp5);
+        System.out.println("Total: " + this.total);
+        buildUni(exp2, exp3, exp5);
+        System.out.println("Total: " + this.total);
+        buildUni(exp3, exp2, exp5);
+        System.out.println("Total: " + this.total);
+
+        buildUni(exp1, exp5, exp6);
+        System.out.println("Total: " + this.total);
+        buildUni(exp5, exp1, exp6);
+        System.out.println("Total: " + this.total);
+        buildUni(exp2, exp4, exp6);
+        System.out.println("Total: " + this.total);
+        buildUni(exp4, exp2, exp6);
+        System.out.println("Total: " + this.total);
+        buildUni(exp3, exp3, exp6);
+        System.out.println("Total: " + this.total);
+
     }
 
     public boolean canMerge(Expression e1, Expression e2) {
-        boolean b = true;
         for (int n : e1.getIndexes()) {
             if (e2.getIndexes().contains(n)) {
-                b = false;
+                return false;
             }
         }
-        return b;
+        return true;
+    }
+    
+    public void printAllSolutions() {
+       System.out.println("----------------------------------");
+        System.out.println("Resenja:");
+        for (Expression e: sol) {
+            System.out.println(e);
+        }
     }
 
-    //Mozda moze jedna f-ja za sve buildove, samo da se prosledjuju razlicite liste izraza...
-    //Proveriti da li se izrazi od 3 clana i vise moraju praviti i od 3 pojedinacna broja ili je to obuhvaceno u exp2?
     public void build1() {
         for (int i = 0; i < numbers.size(); i++) {
             Expression e = new Expression(numbers.get(i), i);
             this.exp1.add(e);
             this.total++;
+
+            if (e.getValue() == this.target) {
+                this.sol.add(e);
+            }
         }
     }
 
@@ -69,16 +96,42 @@ public class ExpressionBuilder {
         for (int i = 0; i < ex1.size(); i++) {
             for (int j = 0; j < ex2.size(); j++) {
                 if (canMerge(ex1.get(i), ex2.get(j))) {
-                    Expression e1 = new Expression(ex1.get(i), ex2.get(j), "+");
-                    Expression e2 = new Expression(ex1.get(i), ex2.get(j), "-");
-                    Expression e3 = new Expression(ex1.get(i), ex2.get(j), "*");
-                    Expression e4 = new Expression(ex1.get(i), ex2.get(j), ":");
 
-                    exp.add(e1);
-                    exp.add(e2);
-                    exp.add(e3);
-                    exp.add(e4);
-                    this.total += 4;
+                    if ((ex1.get(i).getNum() < ex2.get(j).getNum()) || ((ex1.get(i).getNum() == ex2.get(j).getNum()) && (i < j))) { //komutativnost + i *
+                        Expression e1 = new Expression(ex1.get(i), ex2.get(j), "+");
+                        exp.add(e1);
+                        this.total++;
+                        if (e1.getValue() == this.target) {
+                            this.sol.add(e1);
+                        }
+
+                        if ((ex1.get(i).getValue() != 1) && (ex2.get(j).getValue() != 1)) {     //izbegava se mnozenje jedinicom
+                            Expression e2 = new Expression(ex1.get(i), ex2.get(j), "*");
+                            exp.add(e2);
+                            this.total++;
+                            if (e2.getValue() == this.target) {
+                                this.sol.add(e2);
+                            }
+                        }
+                    }
+
+                    if (ex1.get(i).getValue() > ex2.get(j).getValue()) {        //izbegava se koriscenje nepozitivnih izraza
+                        Expression e3 = new Expression(ex1.get(i), ex2.get(j), "-");
+                        exp.add(e3);
+                        this.total++;
+                        if (e3.getValue() == this.target) {
+                            this.sol.add(e3);
+                        }
+                    }
+
+                    if (ex2.get(j).getValue() != 1) {       //izbegava se deljenje jedinicom
+                        Expression e4 = new Expression(ex1.get(i), ex2.get(j), ":");
+                        exp.add(e4);
+                        this.total++;
+                        if (e4.getValue() == this.target) {
+                            this.sol.add(e4);
+                        }
+                    }
                 }
             }
         }
