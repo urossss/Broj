@@ -10,14 +10,14 @@ public final class Expression {
     Integer priority;   //prioritet operacija: 0 ako je samo jedan clan, 1 ako ima + ili -, 2 ako je samo * ili :
     Boolean valid;      //true ako je value ceo broj, u suprotnom false
     ArrayList<Integer> indexes = new ArrayList<>(); //indeksi ponudjenih brojeva koji su iskorisceni u ovom izrazu
-    Expression left;
-    Expression right;
-    String sign;
+    //Expression left;
+    //Expression right;
+    //String sign;
     
     public Expression(Expression exp1, Expression exp2, String op) {
-        this.left = exp1;
-        this.right = exp2;
-        this.sign = op;
+        //this.left = exp1;
+        //this.right = exp2;
+        //this.sign = op;
         
         if ((exp1.getPriority()==1) && (op.equals("*") || op.equals(":"))) {
             this.expression = "(" + exp1.getExpression() + ")";
@@ -77,7 +77,7 @@ public final class Expression {
         this.priority = 0;
         this.num = 1;
         this.indexes.add(i);
-        this.sign = "";
+        //this.sign = "";
         
         //setValidity();
         
@@ -110,7 +110,8 @@ public final class Expression {
     }
     
     public String getSign() {
-        return this.sign;
+    //    return this.sign;
+        return "";
     }
     
     public void setValidity() {
@@ -136,7 +137,7 @@ public final class Expression {
     }
     
     public void printParents() {
-        System.out.println(" = #" + left.toString() + "# " + sign + " #" + right.toString() + "#");
+        //System.out.println(" = #" + left.toString() + "# " + sign + " #" + right.toString() + "#");
     }
     
     @Override

@@ -28,28 +28,29 @@ public class ExpressionBuilder {
         buildUni(exp1, exp1, exp2);
 
         buildUni(exp1, exp2, exp3);
-        buildUni(exp2, exp1, exp3);
+        //buildUni(exp2, exp1, exp3);
 
         buildUni(exp1, exp3, exp4);
-        buildUni(exp3, exp1, exp4);
+        //buildUni(exp3, exp1, exp4);
         buildUni(exp2, exp2, exp4);
 
         buildUni(exp1, exp4, exp5);
-        buildUni(exp4, exp1, exp5);
+        //buildUni(exp4, exp1, exp5);
         buildUni(exp2, exp3, exp5);
-        buildUni(exp3, exp2, exp5);
+        //buildUni(exp3, exp2, exp5);
 
         buildUni(exp1, exp5, exp6);
-        buildUni(exp5, exp1, exp6);
+        //buildUni(exp5, exp1, exp6);
         buildUni(exp2, exp4, exp6);
-        buildUni(exp4, exp2, exp6);
+        //buildUni(exp4, exp2, exp6);
         buildUni(exp3, exp3, exp6);
 
         this.total = exp1.size() + exp2.size() + exp3.size() + exp4.size() + exp5.size() + exp6.size();
         System.out.println("Total expressions: " + this.total);
+        
+        //System.out.println("Total: " + this.sol.size());
 
         //printAllSolutions();
-
     }
 
     public boolean canMerge(Expression e1, Expression e2) {
@@ -75,7 +76,6 @@ public class ExpressionBuilder {
         for (int i = 0; i < numbers.size(); i++) {
             Expression e = new Expression(numbers.get(i), i);
             this.exp1.add(e);
-            this.total++;
 
             if (e.getValue() == this.target) {
                 this.sol.add(e);
@@ -159,45 +159,65 @@ public class ExpressionBuilder {
             for (int j = 0; j < ex2.size(); j++) {
                 Expression exx1 = ex1.get(i);
                 Expression exx2 = ex2.get(j);
-                if (canMerge(exx1, exx2)) {
+                if (!(canMerge(exx1, exx2))) {       //ne sme se jedan broj koristiti vise puta
+                    continue;
+                }
+                if ((num1 == num2) && (i >= j)) {    //zbog komutativnosti
+                    continue;
+                }
 
-                    if ((num1 < num2) || ((num1 == num2) && (i < j))) { //komutativnost + i *
-                        Expression e1 = new Expression(exx1, exx2, "+");
-                        exp.add(e1);
-                        //this.total++;
-                        if (e1.getValue() == this.target) {
-                            this.sol.add(e1);
-                        }
+                //A+B
+                Expression e1 = new Expression(exx1, exx2, "+");
+                exp.add(e1);
+                if (e1.getValue() == this.target) {
+                    this.sol.add(e1);
+                }
 
-                        if ((exx1.getValue() != 1) && (exx2.getValue() != 1)) {     //izbegava se mnozenje jedinicom
-                            Expression e2 = new Expression(exx1, exx2, "*");
-                            exp.add(e2);
-                            //this.total++;
-                            if (e2.getValue() == this.target) {
-                                this.sol.add(e2);
-                            }
-                        }
+                //A*B
+                if ((exx1.getValue() != 1) && (exx2.getValue() != 1)) {     //izbegava se mnozenje jedinicom
+                    Expression e2 = new Expression(exx1, exx2, "*");
+                    exp.add(e2);
+                    if (e2.getValue() == this.target) {
+                        this.sol.add(e2);
                     }
+                }
 
-                    if ((exx1.getValue() > exx2.getValue()) && (exx2.getPriority() != 1)) {        //izbegava se koriscenje 'nepozitivnih' izraza i oduzimanje zbira ili razlike
-                        if ((exx1.getSign().equals("-")) && (i < j)) {
-                            
-                        }
+                //A-B
+                if (exx1.getValue() > exx2.getValue()) { // && ()) {        //izbegava se koriscenje 'nepozitivnih' izraza
+                    /*if ((exx1.getSign().equals("-")) && (i < j)) {    //???
+
+                    }*/
+                    if (exx2.getPriority() != 1) {                          //izbegava se oduzimanje zbira ili razlike
                         Expression e3 = new Expression(exx1, exx2, "-");
                         exp.add(e3);
-                        this.total++;
                         if (e3.getValue() == this.target) {
                             this.sol.add(e3);
                         }
                     }
-
-                    if ((exx2.getValue() != 1) && (exx2.getPriority() != 2)) {       //izbegava se deljenje jedinicom i deljenje proizvodom ili kolicnikom
-                        Expression e4 = new Expression(exx1, exx2, ":");
-                        exp.add(e4);
-                        this.total++;
-                        if (e4.getValue() == this.target) {
-                            this.sol.add(e4);
+                } else if (exx2.getValue() > exx1.getValue()) {             //B-A, ako je B>A
+                    if (exx1.getPriority() != 1) {
+                        Expression e33 = new Expression(exx2, exx1, "-");
+                        exp.add(e33);
+                        if (e33.getValue() == this.target) {
+                            this.sol.add(e33);
                         }
+                    }
+                }
+                
+                //A/B
+                if ((exx2.getValue() != 1) && (exx2.getPriority() != 2)) {       //izbegava se deljenje jedinicom i deljenje proizvodom ili kolicnikom
+                    Expression e4 = new Expression(exx1, exx2, ":");
+                    exp.add(e4);
+                    if (e4.getValue() == this.target) {
+                        this.sol.add(e4);
+                    }
+                }
+                //B/A
+                if ((exx1.getValue() != 1) && (exx1.getPriority() != 2)) {       //izbegava se deljenje jedinicom i deljenje proizvodom ili kolicnikom
+                    Expression e5 = new Expression(exx2, exx1, ":");
+                    exp.add(e5);
+                    if (e5.getValue() == this.target) {
+                        this.sol.add(e5);
                     }
                 }
             }
