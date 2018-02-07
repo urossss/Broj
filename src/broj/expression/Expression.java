@@ -10,8 +10,15 @@ public final class Expression {
     Integer priority;   //prioritet operacija: 0 ako je samo jedan clan, 1 ako ima + ili -, 2 ako je samo * ili :
     Boolean valid;      //true ako je value ceo broj, u suprotnom false
     ArrayList<Integer> indexes = new ArrayList<>(); //indeksi ponudjenih brojeva koji su iskorisceni u ovom izrazu
+    Expression left;
+    Expression right;
+    String sign;
     
     public Expression(Expression exp1, Expression exp2, String op) {
+        this.left = exp1;
+        this.right = exp2;
+        this.sign = op;
+        
         if ((exp1.getPriority()==1) && (op.equals("*") || op.equals(":"))) {
             this.expression = "(" + exp1.getExpression() + ")";
         } else {
@@ -70,6 +77,7 @@ public final class Expression {
         this.priority = 0;
         this.num = 1;
         this.indexes.add(i);
+        this.sign = "";
         
         //setValidity();
         
@@ -101,6 +109,10 @@ public final class Expression {
         return this.indexes;
     }
     
+    public String getSign() {
+        return this.sign;
+    }
+    
     public void setValidity() {
         this.valid = Math.ceil(this.value) == Math.floor(this.value);
     }
@@ -123,12 +135,16 @@ public final class Expression {
         System.out.println("");
     }
     
+    public void printParents() {
+        System.out.println(" = #" + left.toString() + "# " + sign + " #" + right.toString() + "#");
+    }
+    
     @Override
     public String toString() {
-        String s = this.expression + " = " + this.value.toString() + " ";
-        if (this.valid == true) {
-            s += "T ";
-        }
+        String s = this.expression + " = " + this.value.toString();
+        //if (this.valid == true) {
+        //    s += "T ";
+        //}
         return s;
     }
     
