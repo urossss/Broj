@@ -1,6 +1,6 @@
 package broj;
 
-import broj.expression.ExpressionBuilder;
+import broj.expression.*;
 import java.util.*;
 
 public class Broj {

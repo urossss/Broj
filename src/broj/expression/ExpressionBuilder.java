@@ -50,7 +50,7 @@ public class ExpressionBuilder {
         
         //System.out.println("Total: " + this.sol.size());
 
-        //printAllSolutions();
+        printAllSolutions();
     }
 
     public boolean canMerge(Expression e1, Expression e2) {
@@ -66,8 +66,8 @@ public class ExpressionBuilder {
         System.out.println("----------------------------------");
         System.out.println("Resenja:");
         for (Expression e : sol) {
-            System.out.print(e);
-            e.printParents();
+            e.formExpressionString();
+            System.out.println(e);
         }
         System.out.println("Total: " + this.sol.size());
     }
@@ -82,76 +82,7 @@ public class ExpressionBuilder {
             }
         }
     }
-
-    public void buildUniKom1(ArrayList<Expression> ex1, ArrayList<Expression> ex2, ArrayList<Expression> exp) {  //znamo da su u ex1 izrazi sa MANJE clanova nego u ex2
-        for (int i = 0; i < ex1.size(); i++) {
-            for (int j = 0; j < ex2.size(); j++) {
-                if (canMerge(ex1.get(i), ex2.get(j))) {
-
-                    Expression e1 = new Expression(ex1.get(i), ex2.get(j), "+");
-                    exp.add(e1);
-                    if (e1.getValue() == this.target) {
-                        this.sol.add(e1);
-                    }
-
-                    if ((ex1.get(i).getValue() != 1) && (ex2.get(j).getValue() != 1)) {     //izbegava se mnozenje jedinicom
-                        Expression e2 = new Expression(ex1.get(i), ex2.get(j), "*");
-                        exp.add(e2);
-                        if (e2.getValue() == this.target) {
-                            this.sol.add(e2);
-                        }
-                    }
-
-                    if ((ex1.get(i).getValue() > ex2.get(j).getValue()) && (ex2.get(j).getPriority() != 1)) {        //izbegava se koriscenje 'nepozitivnih' izraza i oduzimanje zbira ili razlike
-                        Expression e3 = new Expression(ex1.get(i), ex2.get(j), "-");
-                        exp.add(e3);
-                        this.total++;
-                        if (e3.getValue() == this.target) {
-                            this.sol.add(e3);
-                        }
-                    }
-
-                    if ((ex2.get(j).getValue() != 1) && (ex2.get(j).getPriority() != 2)) {       //izbegava se deljenje jedinicom i deljenje proizvodom ili kolicnikom
-                        Expression e4 = new Expression(ex1.get(i), ex2.get(j), ":");
-                        exp.add(e4);
-                        this.total++;
-                        if (e4.getValue() == this.target) {
-                            this.sol.add(e4);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    public void buildUniKom2(ArrayList<Expression> ex1, ArrayList<Expression> ex2, ArrayList<Expression> exp) {  //znamo da su u ex1 izrazi sa vise clanova nego u ex2
-        for (int i = 0; i < ex1.size(); i++) {
-            for (int j = 0; j < ex2.size(); j++) {
-                if (canMerge(ex1.get(i), ex2.get(j))) {
-
-                    //zbog komutativnosti + i *, u ovoj funkciji se vrse samo oduzimanje i deljenje
-                    if ((ex1.get(i).getValue() > ex2.get(j).getValue()) && (ex2.get(j).getPriority() != 1)) {        //izbegava se koriscenje 'nepozitivnih' izraza i oduzimanje zbira ili razlike
-                        Expression e3 = new Expression(ex1.get(i), ex2.get(j), "-");
-                        exp.add(e3);
-                        this.total++;
-                        if (e3.getValue() == this.target) {
-                            this.sol.add(e3);
-                        }
-                    }
-
-                    if ((ex2.get(j).getValue() != 1) && (ex2.get(j).getPriority() != 2)) {       //izbegava se deljenje jedinicom i deljenje proizvodom ili kolicnikom
-                        Expression e4 = new Expression(ex1.get(i), ex2.get(j), ":");
-                        exp.add(e4);
-                        this.total++;
-                        if (e4.getValue() == this.target) {
-                            this.sol.add(e4);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
+    
     public void buildUni(ArrayList<Expression> ex1, ArrayList<Expression> ex2, ArrayList<Expression> exp) {
         int num1 = ex1.get(0).getNum();
         int num2 = ex2.get(0).getNum();
@@ -167,7 +98,7 @@ public class ExpressionBuilder {
                 }
 
                 //A+B
-                Expression e1 = new Expression(exx1, exx2, "+");
+                Expression e1 = new Expression(exx1, exx2, '+');
                 exp.add(e1);
                 if (e1.getValue() == this.target) {
                     this.sol.add(e1);
@@ -175,7 +106,7 @@ public class ExpressionBuilder {
 
                 //A*B
                 if ((exx1.getValue() != 1) && (exx2.getValue() != 1)) {     //izbegava se mnozenje jedinicom
-                    Expression e2 = new Expression(exx1, exx2, "*");
+                    Expression e2 = new Expression(exx1, exx2, '*');
                     exp.add(e2);
                     if (e2.getValue() == this.target) {
                         this.sol.add(e2);
@@ -188,7 +119,7 @@ public class ExpressionBuilder {
 
                     }*/
                     if (exx2.getPriority() != 1) {                          //izbegava se oduzimanje zbira ili razlike
-                        Expression e3 = new Expression(exx1, exx2, "-");
+                        Expression e3 = new Expression(exx1, exx2, '-');
                         exp.add(e3);
                         if (e3.getValue() == this.target) {
                             this.sol.add(e3);
@@ -196,7 +127,7 @@ public class ExpressionBuilder {
                     }
                 } else if (exx2.getValue() > exx1.getValue()) {             //B-A, ako je B>A
                     if (exx1.getPriority() != 1) {
-                        Expression e33 = new Expression(exx2, exx1, "-");
+                        Expression e33 = new Expression(exx2, exx1, '-');
                         exp.add(e33);
                         if (e33.getValue() == this.target) {
                             this.sol.add(e33);
@@ -206,7 +137,7 @@ public class ExpressionBuilder {
                 
                 //A/B
                 if ((exx2.getValue() != 1) && (exx2.getPriority() != 2)) {       //izbegava se deljenje jedinicom i deljenje proizvodom ili kolicnikom
-                    Expression e4 = new Expression(exx1, exx2, ":");
+                    Expression e4 = new Expression(exx1, exx2, ':');
                     exp.add(e4);
                     if (e4.getValue() == this.target) {
                         this.sol.add(e4);
@@ -214,7 +145,7 @@ public class ExpressionBuilder {
                 }
                 //B/A
                 if ((exx1.getValue() != 1) && (exx1.getPriority() != 2)) {       //izbegava se deljenje jedinicom i deljenje proizvodom ili kolicnikom
-                    Expression e5 = new Expression(exx2, exx1, ":");
+                    Expression e5 = new Expression(exx2, exx1, ':');
                     exp.add(e5);
                     if (e5.getValue() == this.target) {
                         this.sol.add(e5);
