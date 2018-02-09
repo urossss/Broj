@@ -4,25 +4,25 @@ import java.util.*;
 
 public final class Expression {
 
-    String expression;  //izraz u formi stringa
-    Double value;       //brojna vrednost izraza
-    Integer num;        //broj clanova izraza
-    Integer priority;   //prioritet operacija: 0 ako je samo jedan clan, 1 ako ima + ili -, 2 ako je samo * ili :
-    Boolean valid;      //true ako je value ceo broj, u suprotnom false
-    ArrayList<Integer> indexes = new ArrayList<>(); //indeksi ponudjenih brojeva koji su iskorisceni u ovom izrazu
-    Expression left;
-    Expression right;
-    char sign;
+    private String expression;  //izraz u formi stringa
+    private Double value;       //brojna vrednost izraza
+    private int num;        //broj clanova izraza
+    private int priority;   //prioritet operacija: 0 ako je samo jedan clan, 1 ako ima + ili -, 2 ako je samo * ili :
+    private Boolean valid;      //true ako je value ceo broj, u suprotnom false
+    private ArrayList<Integer> indexes = new ArrayList<>(); //indeksi ponudjenih brojeva koji su iskorisceni u ovom izrazu
+    private Expression left;
+    private Expression right;
+    private char sign;
 
     public Expression(Expression exp1, Expression exp2, char op) {
         this.left = exp1;
         this.right = exp2;
         this.sign = op;
+        this.expression = "";
 
         switch (op) {
             case '+':
                 this.value = exp1.getValue() + exp2.getValue();
-                //this.expression = this.expression + "+" + exp2.getExpression();
                 this.priority = 1;
                 break;
             case '-':
@@ -45,9 +45,6 @@ public final class Expression {
 
         //setValidity();
         setIndexes(exp1, exp2);
-
-        //System.out.println(toString());
-        //printIndexes();
     }
 
     public Expression(Integer n, int i) {
@@ -59,8 +56,6 @@ public final class Expression {
         this.sign = 0;
 
         //setValidity();
-        //System.out.println(toString());
-        //printIndexes();
     }
 
     public String getExpression() {
@@ -72,7 +67,7 @@ public final class Expression {
         return this.value;
     }
 
-    public Integer getNum() {
+    public int getNum() {
         return this.num;
     }
 
@@ -88,9 +83,21 @@ public final class Expression {
         return this.indexes;
     }
 
-    public String getSign() {
-        //    return this.sign;
-        return "";
+    public char getSign() {
+        return this.sign;
+    }
+    
+    public Expression getLeft() {
+        return this.left;
+    }
+    
+    public Expression getRight() {
+        return this.right;
+    }
+    
+    public void printExpression() {
+        formExpressionString();
+        System.out.println(this);
     }
 
     public void formExpressionString() {
@@ -158,15 +165,15 @@ public final class Expression {
         }
     }
 
-    public void printIndexes() {
+    public void printIndexes() {    //
         for (int n : this.indexes) {
             System.out.print(n + " ");
         }
         System.out.println("");
     }
 
-    public void printParents() {
-        //System.out.println(" = #" + left.toString() + "# " + sign + " #" + right.toString() + "#");
+    public void printParents() {    //
+        System.out.println("     = #" + left.toString() + "# " + sign + " #" + right.toString() + "#");
     }
 
     @Override
