@@ -184,5 +184,11 @@ public final class Expression {
         //}
         return s;
     }
+    
+    //proveriti ovo malo i dodati override za hashcode() ako zatreba
+    /*@Override
+    public boolean equals(Object o) {
+        return this.expression.equals(((Expression) o).getExpression());
+    }*/
 
 }
