@@ -24,7 +24,7 @@ public class ExpressionBuilder {
         this.target = target;
         this.numbers = numbers;
         this.total = 0;
-        this.findAll = false;
+        this.findAll = true;
         this.minDif = 999999;
     }
 
@@ -48,7 +48,7 @@ public class ExpressionBuilder {
         this.total = exp1.size() + exp2.size() + exp3.size() + exp4.size() + exp5.size() + exp6.size();
         System.out.println("Total expressions: " + this.total);
 
-        //printAllSolutions();
+        printAllSolutions();
     }
 
     public void findAll() {

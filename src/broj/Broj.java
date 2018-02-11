@@ -6,11 +6,11 @@ import java.util.*;
 public class Broj {
 
     public static void main(String[] args) {
-
-        Integer target;
-        ArrayList<Integer> numbers = new ArrayList<>();
-
+        
         Scanner reader = new Scanner(System.in);
+        
+        /*Integer target;
+        ArrayList<Integer> numbers = new ArrayList<>();
 
         System.out.print("Enter a target number: ");
         target = reader.nextInt();
@@ -20,15 +20,21 @@ public class Broj {
         for (int i = 0; i < 6; i++) {
             n = reader.nextInt();
             numbers.add(n);
-        }
+        }*/
         
-        ExpressionBuilder builder = new ExpressionBuilder(target, numbers);
+        System.out.println("Unesite izraz:");
+        String s = reader.nextLine();
+        
+        InfixToPostfix converter = new InfixToPostfix();
+        converter.convert(s);
+        
+        /*ExpressionBuilder builder = new ExpressionBuilder(target, numbers);
         
         long startTime = System.nanoTime();
         builder.startBuild();
         long endTime = System.nanoTime();
         
-        System.out.println("Build time: " + (endTime - startTime) / 1000000000.0 + "s");
+        System.out.println("Build time: " + (endTime - startTime) / 1000000000.0 + "s");*/
 
     }
 
