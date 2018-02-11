@@ -8,9 +8,9 @@ public class InfixToPostfix {
     private String operators = "+-*:";
     private Stack<String> helper = new Stack<>();
 
-    public void convert(String s) {
+    public ArrayList<String> convert(String s) {
         setExpression(s);
-        printExpression();
+        return this.exp;
     }
 
     public void setExpression(String expression) {
@@ -91,9 +91,8 @@ public class InfixToPostfix {
 
     public void printExpression() {
         for (String s : this.exp) {
-            System.out.print(s + " ");
+            System.out.print(s);
         }
-        System.out.println("");
     }
 
 }

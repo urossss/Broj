@@ -24,9 +24,13 @@ public class Broj {
         
         System.out.println("Unesite izraz:");
         String s = reader.nextLine();
+        ArrayList<String> rpn;
         
         InfixToPostfix converter = new InfixToPostfix();
-        converter.convert(s);
+        rpn = converter.convert(s);
+        System.out.print(s + " = ");
+        converter.printExpression();
+        System.out.println(" = " + PostfixCalculator.evaluateExpression(rpn));
         
         /*ExpressionBuilder builder = new ExpressionBuilder(target, numbers);
         
