@@ -5,7 +5,7 @@ import java.util.*;
 public class PostfixCalculator {
     
     private static ArrayList<String> expression;
-    private static String operators = "+-*:";
+    private static String operators = "+-*/";
     private static Stack<String> stack = new Stack<String>();
 
     public static void setExpression(ArrayList<String> exp) {

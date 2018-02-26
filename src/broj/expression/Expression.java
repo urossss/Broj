@@ -7,7 +7,7 @@ public final class Expression {
     private String expression;  //izraz u formi stringa
     private Double value;       //brojna vrednost izraza
     private int num;        //broj clanova izraza
-    private int priority;   //prioritet operacija: 0 ako je samo jedan clan, 1 ako ima + ili -, 2 ako je samo * ili :
+    private int priority;   //prioritet operacija: 0 ako je samo jedan clan, 1 ako ima + ili -, 2 ako je samo * ili /
     private Boolean valid;      //true ako je value ceo broj, u suprotnom false
     private ArrayList<Integer> indexes = new ArrayList<>(); //indeksi ponudjenih brojeva koji su iskorisceni u ovom izrazu
     private Expression left;
@@ -33,7 +33,7 @@ public final class Expression {
                 this.value = exp1.getValue() * exp2.getValue();
                 this.priority = 2;
                 break;
-            case ':':
+            case '/':
                 this.value = exp1.getValue() / exp2.getValue();
                 this.priority = 2;
                 break;
@@ -131,13 +131,13 @@ public final class Expression {
                     this.expression += right.getExpression();
                 }
                 break;
-            case ':':
+            case '/':
                 if (left.getPriority() == 1) {
                     this.expression += "(" + left.getExpression() + ")";
                 } else {
                     this.expression += left.getExpression();
                 }
-                this.expression += ":";
+                this.expression += "/";
                 if (right.getPriority() != 0) {
                     this.expression += "(" + right.getExpression() + ")";
                 } else {

@@ -5,7 +5,7 @@ import java.util.*;
 public class InfixToPostfix {
 
     private ArrayList<String> exp;
-    private String operators = "+-*:";
+    private String operators = "+-*/";
     private Stack<String> helper = new Stack<>();
 
     public ArrayList<String> convert(String s) {

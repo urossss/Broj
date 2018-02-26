@@ -154,7 +154,7 @@ public class ExpressionBuilder {
 
                 //A*B
                 if (((exx1.getValue() != 1) && (exx2.getValue() != 1)) //izbegava se mnozenje jedinicom
-                        && (exx1.getSign() != ':') && (exx2.getPriority() != 2)) {
+                        && (exx1.getSign() != '/') && (exx2.getPriority() != 2)) {
                     if (!asoc(exx1, exx2, '*')) {
                         Expression e2 = new Expression(exx1, exx2, '*');
                         exp.add(e2);
@@ -189,8 +189,8 @@ public class ExpressionBuilder {
 
                 //A/B
                 if ((exx2.getValue() != 1) && (exx2.getPriority() != 2)) {       //izbegava se deljenje jedinicom i deljenje proizvodom ili kolicnikom
-                    if (!asoc(exx1, exx2, ':')) {
-                        Expression e4 = new Expression(exx1, exx2, ':');
+                    if (!asoc(exx1, exx2, '/')) {
+                        Expression e4 = new Expression(exx1, exx2, '/');
                         exp.add(e4);
                         if (newSolution(e4)) {
                             return;
@@ -199,8 +199,8 @@ public class ExpressionBuilder {
                 }
                 //B/A
                 if ((exx1.getValue() != 1) && (exx1.getPriority() != 2)) {       //izbegava se deljenje jedinicom i deljenje proizvodom ili kolicnikom
-                    if (!asoc(exx2, exx1, ':')) {
-                        Expression e5 = new Expression(exx2, exx1, ':');
+                    if (!asoc(exx2, exx1, '/')) {
+                        Expression e5 = new Expression(exx2, exx1, '/');
                         exp.add(e5);
                         if (newSolution(e5)) {
                             return;

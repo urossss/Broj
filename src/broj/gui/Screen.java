@@ -16,6 +16,7 @@ public class Screen extends javax.swing.JFrame {
 
     private int target;
     private ArrayList<Integer> numbers = new ArrayList<>();
+    private ArrayList<String> exp = new ArrayList<>();
 
     /**
      * Creates new form Screen
@@ -23,6 +24,10 @@ public class Screen extends javax.swing.JFrame {
     public Screen() {
         initComponents();
         restart();
+    }
+    
+    public boolean isOp(String s) {
+        return s.equals("+") || s.equals("-") || s.equals("*") || s.equals("/");
     }
 
     public void restart() {
@@ -110,6 +115,20 @@ public class Screen extends javax.swing.JFrame {
         }
     }
 
+    public void addNumber() {
+        if (exp.isEmpty() || isOp(exp.get(exp.size()-1))) {
+            
+        }
+    }
+    
+    public void addOperation() {
+        
+    }
+    
+    public void addParentheses() {
+        
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -133,6 +152,8 @@ public class Screen extends javax.swing.JFrame {
         lab8 = new javax.swing.JLabel();
         lab9 = new javax.swing.JLabel();
         _restart = new javax.swing.JButton();
+        userSolution = new javax.swing.JTextField();
+        _op_plus = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(43, 155, 243));
@@ -275,6 +296,23 @@ public class Screen extends javax.swing.JFrame {
             }
         });
 
+        userSolution.setEditable(false);
+        userSolution.setBackground(new java.awt.Color(51, 153, 255));
+        userSolution.setFont(new java.awt.Font("Tahoma", 0, 48)); // NOI18N
+        userSolution.setForeground(new java.awt.Color(255, 255, 255));
+        userSolution.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
+
+        _op_plus.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        _op_plus.setForeground(new java.awt.Color(255, 255, 255));
+        _op_plus.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        _op_plus.setText("+");
+        _op_plus.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
+        _op_plus.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                _op_plusMouseClicked(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -289,15 +327,21 @@ public class Screen extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGap(49, 49, 49)
-                                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(48, 48, 48)
-                                .addComponent(lab8, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(51, 51, 51)
-                                .addComponent(lab9, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGap(336, 336, 336)
-                                .addComponent(_stop, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(_stop, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(49, 49, 49)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(_op_plus, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(userSolution)
+                                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(48, 48, 48)
+                                                .addComponent(lab8, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                        .addGap(51, 51, 51)
+                                        .addComponent(lab9, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                         .addGap(0, 118, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -319,16 +363,18 @@ public class Screen extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(lab8, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(lab9, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(372, Short.MAX_VALUE))
+                .addGap(26, 26, 26)
+                .addComponent(_op_plus, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(32, 32, 32)
+                .addComponent(userSolution, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(205, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -343,6 +389,8 @@ public class Screen extends javax.swing.JFrame {
     private void _stopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__stopActionPerformed
         // TODO add your handling code here:
         set = true;
+        //userSolution.setText(userSolution.getText() + "a");
+        userSolution.setVisible(false);
     }//GEN-LAST:event__stopActionPerformed
 
     private void _restartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__restartActionPerformed
@@ -351,6 +399,11 @@ public class Screen extends javax.swing.JFrame {
         t1.interrupt();
         restart();
     }//GEN-LAST:event__restartActionPerformed
+
+    private void _op_plusMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event__op_plusMouseClicked
+        // TODO add your handling code here:
+        addOperation();
+    }//GEN-LAST:event__op_plusMouseClicked
 
     /**
      * @param args the command line arguments
@@ -388,6 +441,7 @@ public class Screen extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel _op_plus;
     private javax.swing.JButton _restart;
     private javax.swing.JButton _stop;
     private javax.swing.JPanel jPanel1;
@@ -402,5 +456,6 @@ public class Screen extends javax.swing.JFrame {
     private javax.swing.JLabel lab7;
     private javax.swing.JLabel lab8;
     private javax.swing.JLabel lab9;
+    private javax.swing.JTextField userSolution;
     // End of variables declaration//GEN-END:variables
 }
