@@ -49,7 +49,7 @@ public class InfixToPostfix {
                             }
                             s = helper.pop();
                         }
-                        if ((s.equals("+") || s.equals('-')) || (zagrada(s))) {
+                        if ((s.equals("+") || s.equals("-")) || (zagrada(s))) {
                             helper.push(s);
                         } else {
                             exp.add(s);
