@@ -6,14 +6,14 @@ import javax.swing.*;
 
 public class Screen extends javax.swing.JFrame {
 
-    private final int X = 50;
+    private final int X = 50;           //broj milisekundi izmedju 2 broja pri zaustavljanju brojaca
     private Random rand = new Random();
 
     private boolean set;
     private boolean thread_run;
-    private boolean stop_all = true;
+    private boolean stop_all;
 
-    private Thread t1;
+    private Thread t1;      //nit koja obavlja zaustavljanje brojeva
 
     private int target;                                         //trazeni broj
     private ArrayList<Integer> numbers = new ArrayList<>();     //ponudjeni brojevi
@@ -22,6 +22,11 @@ public class Screen extends javax.swing.JFrame {
     private ArrayList<String> exp = new ArrayList<>();          //izraz koji koirisnik unosi
     private String expString;                                   //izraz koji koirisnik unosi, u formi stringa
 
+    private InfixToPostfix converter = new InfixToPostfix();
+    private ExpressionBuilder builder = new ExpressionBuilder();
+    private ArrayList<Expression> sol = new ArrayList<>();
+    private int total;
+
     /**
      * Creates new form Screen
      */
@@ -29,18 +34,26 @@ public class Screen extends javax.swing.JFrame {
         initComponents();
         //
         addLabs();
+        findAll.doClick();
+        vremeRacunanja.doClick();
         restart();
     }
 
     public void restart() {
         thread_run = true;
         set = false;
+        stop_all = false;
 
         numbers.clear();
         exp.clear();
         userSolution.setText("");
         resField.setText("");
+        solField.setText("");
+        resComp.setText("");
+        area.setText("");
+        stats.setText("");
         disabledLabs.clear();
+        sol.clear();
 
         lab1.setText(" ");
         lab2.setText(" ");
@@ -222,20 +235,43 @@ public class Screen extends javax.swing.JFrame {
     }
 
     public void calculate() {
-        InfixToPostfix converter = new InfixToPostfix();
         double result = PostfixCalculator.evaluateExpression(converter.convert(userSolution.getText()));
         String resString;
         if (Math.floor(result) == Math.ceil(result)) {
             resString = Math.round(result) + "";
         } else {
+            result = Math.round(result);
+            result /= 100;
             resString = result + "";
         }
         resField.setText(resString);
     }
 
     public void solve() {
-        ExpressionBuilder builder = new ExpressionBuilder(target, numbers);
+        builder.reset(target, numbers);
+        builder.findAll(findAll.isSelected());
+        long startTime = System.nanoTime();
         builder.startBuild();
+        long endTime = System.nanoTime();
+        total = builder.getTotal();
+        sol = builder.getSol();
+
+        writeSol();
+        stats.setText(" Izracunato za " + (endTime - startTime) / 1000000 + "ms. Ukupno " + total + " izraza izracunato.");
+    }
+
+    public void writeSol() {
+        if (findAll.isSelected()) {
+            for (Expression e : sol) {
+                String newLine = Math.round(e.getValue()) + " = " + e.getExpression() + "\n";
+                area.setText(area.getText() + newLine);
+            }
+        } else {
+            String s = " " + sol.get(0).getExpression();
+            String r = "" + Math.round(sol.get(0).getValue());
+            solField.setText(s);
+            resComp.setText(r);
+        }
     }
 
     /**
@@ -275,11 +311,15 @@ public class Screen extends javax.swing.JFrame {
         no = new javax.swing.JButton();
         yes = new javax.swing.JButton();
         computer = new javax.swing.JButton();
-        field = new javax.swing.JTextField();
+        solField = new javax.swing.JTextField();
         area = new java.awt.TextArea();
+        _auto = new javax.swing.JButton();
+        resComp = new javax.swing.JLabel();
+        stats = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         opcije = new javax.swing.JMenu();
-        findall = new javax.swing.JCheckBoxMenuItem();
+        findAll = new javax.swing.JCheckBoxMenuItem();
+        vremeRacunanja = new javax.swing.JCheckBoxMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(43, 155, 243));
@@ -457,6 +497,7 @@ public class Screen extends javax.swing.JFrame {
         userSolution.setBackground(new java.awt.Color(51, 153, 255));
         userSolution.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
         userSolution.setForeground(new java.awt.Color(255, 255, 255));
+        userSolution.setHorizontalAlignment(javax.swing.JTextField.LEFT);
         userSolution.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
 
         ops.setBackground(new java.awt.Color(51, 153, 255));
@@ -528,7 +569,7 @@ public class Screen extends javax.swing.JFrame {
                 .addComponent(_op_podeljeno, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        resField.setBackground(new java.awt.Color(255, 51, 51));
+        resField.setBackground(new java.awt.Color(255, 255, 255));
         resField.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
         resField.setForeground(new java.awt.Color(255, 255, 255));
         resField.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -629,35 +670,58 @@ public class Screen extends javax.swing.JFrame {
                 .addComponent(computer, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        field.setEditable(false);
-        field.setBackground(new java.awt.Color(51, 153, 255));
-        field.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
-        field.setForeground(new java.awt.Color(255, 255, 255));
-        field.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
+        solField.setEditable(false);
+        solField.setBackground(new java.awt.Color(51, 153, 255));
+        solField.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
+        solField.setForeground(new java.awt.Color(255, 255, 255));
+        solField.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
 
         area.setBackground(new java.awt.Color(51, 153, 255));
         area.setEditable(false);
-        area.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
+        area.setFont(new java.awt.Font("Dialog", 0, 36)); // NOI18N
         area.setForeground(new java.awt.Color(255, 255, 255));
         area.setPreferredSize(new java.awt.Dimension(419, 100));
         area.setVisible(false);
+
+        _auto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                _autoActionPerformed(evt);
+            }
+        });
+
+        resComp.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
+        resComp.setForeground(new java.awt.Color(255, 255, 255));
+        resComp.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        resComp.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
+
+        stats.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        stats.setForeground(new java.awt.Color(255, 255, 255));
+        stats.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addComponent(_stop, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(343, 343, 343))
-            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addContainerGap()
+                        .addComponent(_stop, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(321, 321, 321))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(_restart, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addComponent(number, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(211, 211, 211)
-                        .addComponent(_restart, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(217, 217, 217)
+                        .addComponent(_auto, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addGap(47, 47, 47)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(stats, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(area, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(47, 47, 47)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -668,29 +732,30 @@ public class Screen extends javax.swing.JFrame {
                                     .addComponent(zagrade, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(lab8, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addComponent(userSolution, javax.swing.GroupLayout.PREFERRED_SIZE, 419, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(field, javax.swing.GroupLayout.PREFERRED_SIZE, 419, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(area, javax.swing.GroupLayout.PREFERRED_SIZE, 411, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 70, Short.MAX_VALUE)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lab9, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(resField, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(66, 66, 66)))
-                .addContainerGap())
+                            .addComponent(solField, javax.swing.GroupLayout.PREFERRED_SIZE, 419, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 66, Short.MAX_VALUE)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(lab9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(resField, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(resComp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addGap(47, 47, 47))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(_restart, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(125, 125, 125))
+                        .addContainerGap()
+                        .addComponent(_restart, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(_auto, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(number, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(_stop, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(23, 23, 23)))
+                        .addGap(55, 55, 55)
+                        .addComponent(number, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(_stop, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(23, 23, 23)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -709,24 +774,38 @@ public class Screen extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addComponent(userSolution, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(23, 23, 23)
-                .addComponent(field, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
-                .addComponent(area, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(266, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(solField, javax.swing.GroupLayout.DEFAULT_SIZE, 69, Short.MAX_VALUE)
+                    .addComponent(resComp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(1, 1, 1)
+                .addComponent(area, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(stats, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(217, 217, 217))
         );
 
         opcije.setText("Opcije");
         opcije.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
 
-        findall.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        findall.setSelected(true);
-        findall.setText("Nadji sva resenja");
-        findall.addChangeListener(new javax.swing.event.ChangeListener() {
+        findAll.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        findAll.setSelected(true);
+        findAll.setText("Nadji sva resenja");
+        findAll.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                findallStateChanged(evt);
+                findAllStateChanged(evt);
             }
         });
-        opcije.add(findall);
+        opcije.add(findAll);
+
+        vremeRacunanja.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        vremeRacunanja.setSelected(true);
+        vremeRacunanja.setText("Prikazi vreme racunanja");
+        vremeRacunanja.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                vremeRacunanjaStateChanged(evt);
+            }
+        });
+        opcije.add(vremeRacunanja);
 
         jMenuBar1.add(opcije);
 
@@ -846,19 +925,34 @@ public class Screen extends javax.swing.JFrame {
         erase();
     }//GEN-LAST:event_noActionPerformed
 
-    private void findallStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_findallStateChanged
-        if (findall.isSelected()) {
-            jPanel1.setVisible(false);      //ZASTO OVO RESAVA BUG!?!?!?
+    private void findAllStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_findAllStateChanged
+        if (findAll.isSelected()) {
+            jPanel1.setVisible(false);      //ZASTO OVO RESAVA BUG!?!?!?    repaint()??
             area.setVisible(true);
-            field.setVisible(false);
+            solField.setVisible(false);
+            resComp.setVisible(false);
             jPanel1.setVisible(true);
         } else {
             jPanel1.setVisible(false);
             area.setVisible(false);
-            field.setVisible(true);
+            solField.setVisible(true);
+            resComp.setVisible(true);
             jPanel1.setVisible(true);
         }
-    }//GEN-LAST:event_findallStateChanged
+    }//GEN-LAST:event_findAllStateChanged
+
+    private void _autoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__autoActionPerformed
+        stop_all = true;
+        set = true;
+    }//GEN-LAST:event__autoActionPerformed
+
+    private void vremeRacunanjaStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_vremeRacunanjaStateChanged
+        if (vremeRacunanja.isSelected()) {
+            stats.setVisible(true);
+        } else {
+            stats.setVisible(false);
+        }
+    }//GEN-LAST:event_vremeRacunanjaStateChanged
 
     /**
      * @param args the command line arguments
@@ -896,6 +990,7 @@ public class Screen extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton _auto;
     private javax.swing.JButton _op_minus1;
     private javax.swing.JButton _op_otv_zagrada;
     private javax.swing.JButton _op_plus;
@@ -906,8 +1001,7 @@ public class Screen extends javax.swing.JFrame {
     private javax.swing.JButton _stop;
     private java.awt.TextArea area;
     private javax.swing.JButton computer;
-    private javax.swing.JTextField field;
-    private javax.swing.JCheckBoxMenuItem findall;
+    private javax.swing.JCheckBoxMenuItem findAll;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
@@ -925,8 +1019,12 @@ public class Screen extends javax.swing.JFrame {
     private javax.swing.JPanel number;
     private javax.swing.JMenu opcije;
     private javax.swing.JPanel ops;
+    private javax.swing.JLabel resComp;
     private javax.swing.JLabel resField;
+    private javax.swing.JTextField solField;
+    private javax.swing.JLabel stats;
     private javax.swing.JTextField userSolution;
+    private javax.swing.JCheckBoxMenuItem vremeRacunanja;
     private javax.swing.JButton yes;
     private javax.swing.JPanel zagrade;
     // End of variables declaration//GEN-END:variables

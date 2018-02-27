@@ -14,20 +14,69 @@ public class ExpressionBuilder {
     private ArrayList<Expression> exp6 = new ArrayList<>();
     private int total;                                      //ukupan broj izraza u exp1, exp2... exp6
     private ArrayList<Expression> sol = new ArrayList<>();  //lista svih resenja - tacnih ako postoje ili pribliznih ako nema tacnih
-    private ArrayList<String> solStr = new ArrayList<>();   //lista svih resenja, samo stringovi za ispis   //PROBATI OVO!!!
+    //private ArrayList<String> solStr = new ArrayList<>();   //lista svih resenja, samo stringovi za ispis   //PROBATI OVO!!!
     private boolean findAll;    //true ako je potrebno naci sva resenja
     private boolean found;      //true ako je neko resenje vec pronadjeno
     private int minDif;
 
-    //Constructor
+    //Constructors
+    public ExpressionBuilder() {
+        
+    }
+    
     public ExpressionBuilder(Integer target, ArrayList<Integer> numbers) {
         this.target = target;
         this.numbers = numbers;
         this.total = 0;
         this.findAll = true;
         this.minDif = 999999;
+        this.found = false;
+    }
+    
+    public void reset(int target, ArrayList<Integer> numbers) {
+        this.target = target;
+        this.numbers = numbers;
+        this.total = 0;
+        this.minDif = 999999;
+        this.findAll = false;
+        this.found = false;
+        clearLists();
+    }
+    
+    public void findAll(boolean b) {
+        this.findAll = b;
+    }
+    
+    public void findAll() {
+        this.findAll = true;
+    }
+    
+    public void clearLists() {
+        exp1.clear();
+        exp2.clear();
+        exp3.clear();
+        exp4.clear();
+        exp5.clear();
+        exp6.clear();
+        sol.clear();
     }
 
+    public ArrayList<Expression> getSol() {
+        return this.sol;
+    }
+    
+    public int getTotal() {
+        return this.total;
+    }
+    
+    public void sortNumbers() {     //sortira prva 4 ponudjena broja, da bi se kasnije izbegla neka dupla resenja
+        int a = numbers.get(0);
+        int b = numbers.get(0);
+        int c = numbers.get(0);
+        int d = numbers.get(0);
+        //...
+    }
+    
     public void startBuild() {
         build1();
 
@@ -46,15 +95,8 @@ public class ExpressionBuilder {
         buildUni(exp3, exp3, exp6);
 
         this.total = exp1.size() + exp2.size() + exp3.size() + exp4.size() + exp5.size() + exp6.size();
-        System.out.println("Total expressions: " + this.total);
-
-        printAllSolutions();
     }
-
-    public void findAll() {
-        this.findAll = true;
-    }
-
+    
     public boolean canMerge(Expression e1, Expression e2) {
         for (int n : e1.getIndexes()) {
             if (e2.getIndexes().contains(n)) {
@@ -95,7 +137,8 @@ public class ExpressionBuilder {
             }
             this.found = true;
             if (!this.findAll) {
-                e.printExpression();
+                //e.printExpression();
+                this.sol.add(e);
                 return true;
             }
             this.sol.add(e);
