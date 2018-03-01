@@ -1,6 +1,7 @@
 package broj.gui;
 
 import broj.expression.*;
+import java.awt.*;
 import java.util.*;
 import javax.swing.*;
 
@@ -14,7 +15,7 @@ public class Screen extends javax.swing.JFrame {
     private boolean stop_all;           //true ako hocemo automatsko postavljanje brojeva - random
     private boolean started;        //true ako su brojevi zaustavljeni, moze se poceti racunanje
 
-    private Thread t1;      //nit koja obavlja zaustavljanje brojeva
+    private Thread t;      //nit koja obavlja zaustavljanje brojeva
 
     private int target;                                         //trazeni broj
     private ArrayList<Integer> numbers = new ArrayList<>();     //ponudjeni brojevi
@@ -33,10 +34,16 @@ public class Screen extends javax.swing.JFrame {
      */
     public Screen() {
         initComponents();
+
+        Image im = Toolkit.getDefaultToolkit().getImage(getClass().getResource("icons/icon_numbers2.png"));
+        setIconImage(im);
+
+        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+        this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
         //
         addLabs();
-        findAll.doClick();
-        vremeRacunanja.doClick();
+        _findAll.doClick();
+        _showStats.doClick();
         restart();
     }
 
@@ -54,12 +61,12 @@ public class Screen extends javax.swing.JFrame {
         sol.clear();
 
         //brisu se ispisi sa ekrana
-        userSolution.setText("");
-        resField.setText("");
-        solField.setText("");
-        resComp.setText("");
-        area.setText("");
-        stats.setText("");
+        _sol_user.setText("");
+        _res_user.setText("");
+        _sol_comp.setText("");
+        _res_comp.setText("");
+        _sol_comp_area.setText("");
+        _stats.setText("");
         lab1.setText(" ");
         lab2.setText(" ");
         lab3.setText(" ");
@@ -69,12 +76,12 @@ public class Screen extends javax.swing.JFrame {
         expString = "";
 
         //pokrecu se brojaci za zaustavljanje brojeva
-        t1 = new Thread() {
+        t = new Thread() {
             public void run() {
                 initialize(this);
             }
         };
-        t1.start();
+        t.start();
     }
 
     public void initialize(Thread t) {
@@ -94,8 +101,6 @@ public class Screen extends javax.swing.JFrame {
             target = Integer.parseInt(lab1.getText()) * 100
                     + Integer.parseInt(lab2.getText()) * 10
                     + Integer.parseInt(lab3.getText());
-
-            System.out.println(target);
 
             numbers.add(Integer.parseInt(lab4.getText()));
             numbers.add(Integer.parseInt(lab5.getText()));
@@ -187,7 +192,7 @@ public class Screen extends javax.swing.JFrame {
             if (exp.isEmpty() || isOp(exp.get(exp.size() - 1)) || exp.get(exp.size() - 1).equals("(")) {
                 exp.add(num);
                 makeExp();
-                userSolution.setText(expString);
+                _sol_user.setText(expString);
                 return true;
             }
         }
@@ -200,7 +205,7 @@ public class Screen extends javax.swing.JFrame {
             if (!(exp.isEmpty() || allNumbersUsed() || isOp(exp.get(exp.size() - 1)) || exp.get(exp.size() - 1).equals("("))) {
                 exp.add(op);
                 makeExp();
-                userSolution.setText(expString);
+                _sol_user.setText(expString);
             }
         }
     }
@@ -211,7 +216,7 @@ public class Screen extends javax.swing.JFrame {
             if (exp.isEmpty() || exp.get(exp.size() - 1).equals("(") || isOp(exp.get(exp.size() - 1))) {
                 exp.add("(");
                 makeExp();
-                userSolution.setText(expString);
+                _sol_user.setText(expString);
             }
         }
     }
@@ -232,7 +237,7 @@ public class Screen extends javax.swing.JFrame {
                 if (open > closed) {
                     exp.add(")");
                     makeExp();
-                    userSolution.setText(expString);
+                    _sol_user.setText(expString);
                 }
             }
         }
@@ -248,9 +253,9 @@ public class Screen extends javax.swing.JFrame {
             }
             exp.remove(exp.size() - 1);
             makeExp();
-            userSolution.setText(expString);
+            _sol_user.setText(expString);
 
-            resField.setText("");
+            _res_user.setText("");
         }
     }
 
@@ -277,23 +282,23 @@ public class Screen extends javax.swing.JFrame {
 
     //racunanje izraza koji korisnik unese
     public void calculate() {
-        double result = PostfixCalculator.evaluateExpression(converter.convert(userSolution.getText()));
+        double result = PostfixCalculator.evaluateExpression(converter.convert(_sol_user.getText()));
         String resString;
         if (Math.floor(result) == Math.ceil(result)) {
             resString = Math.round(result) + "";
         } else {
-            result = Math.round(result*100);
+            result = Math.round(result * 100);
             result /= 100.0;
             Math.round(result);
             resString = result + "";
         }
-        resField.setText(resString);
+        _res_user.setText(resString);
     }
 
     //resenje kompjutera
     public void solve() {
         builder.reset(target, numbers);
-        builder.findAll(findAll.isSelected());  //da li nalazi sva resenja ili samo jedno
+        builder.findAll(_findAll.isSelected());  //da li nalazi sva resenja ili samo jedno
         long startTime = System.nanoTime();     //za racunanje za koliko je kompjuter nasao resenje
         builder.startBuild();
         long endTime = System.nanoTime();
@@ -301,24 +306,24 @@ public class Screen extends javax.swing.JFrame {
         sol = builder.getSol();
 
         writeSol();
-        stats.setText(" Izracunato za " + (endTime - startTime) / 1000000 + "ms. Ukupno " + total + " izraza izracunato.");
-        if (findAll.isSelected()) {
-            stats.setText(stats.getText() + " Ukupno " + sol.size() + " resenja.");
+        _stats.setText(" Izracunato za " + (endTime - startTime) / 1000000 + "ms. Ukupno " + total + " izraza izracunato.");
+        if (_findAll.isSelected()) {
+            _stats.setText(_stats.getText() + " Ukupno " + sol.size() + " resenja.");
         }
     }
 
     //ispis (jednog ili svih) resenja u odgovarajuca polja
     public void writeSol() {
-        if (findAll.isSelected()) {
+        if (_findAll.isSelected()) {
             for (Expression e : sol) {
                 String newLine = Math.round(e.getValue()) + " = " + e.getExpression() + "\n";
-                area.setText(area.getText() + newLine);
+                _sol_comp_area.setText(_sol_comp_area.getText() + newLine);
             }
         } else {
             String s = " " + sol.get(0).getExpression();
             String r = "" + Math.round(sol.get(0).getValue());
-            solField.setText(s);
-            resComp.setText(r);
+            _sol_comp.setText(s);
+            _res_comp.setText(r);
         }
     }
 
@@ -331,55 +336,57 @@ public class Screen extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel1 = new javax.swing.JPanel();
+        _panel_form = new javax.swing.JPanel();
         _stop = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
-        lab7 = new javax.swing.JLabel();
+        _panel_numbers = new javax.swing.JPanel();
+        lab4 = new javax.swing.JLabel();
         lab5 = new javax.swing.JLabel();
         lab6 = new javax.swing.JLabel();
-        lab4 = new javax.swing.JLabel();
-        number = new javax.swing.JPanel();
+        lab7 = new javax.swing.JLabel();
+        _panel_target = new javax.swing.JPanel();
         lab1 = new javax.swing.JLabel();
         lab2 = new javax.swing.JLabel();
         lab3 = new javax.swing.JLabel();
         lab8 = new javax.swing.JLabel();
         lab9 = new javax.swing.JLabel();
         _restart = new javax.swing.JButton();
-        userSolution = new javax.swing.JTextField();
-        ops = new javax.swing.JPanel();
+        _sol_user = new javax.swing.JTextField();
+        _panel_ops = new javax.swing.JPanel();
         _op_plus = new javax.swing.JButton();
-        _op_minus1 = new javax.swing.JButton();
+        _op_minus = new javax.swing.JButton();
         _op_puta = new javax.swing.JButton();
         _op_podeljeno = new javax.swing.JButton();
-        resField = new javax.swing.JLabel();
-        zagrade = new javax.swing.JPanel();
+        _res_user = new javax.swing.JLabel();
+        _panel_parentheses = new javax.swing.JPanel();
         _op_otv_zagrada = new javax.swing.JButton();
         _op_zatv_zagrada = new javax.swing.JButton();
-        jPanel4 = new javax.swing.JPanel();
+        _panel_buttons = new javax.swing.JPanel();
         no = new javax.swing.JButton();
         yes = new javax.swing.JButton();
         computer = new javax.swing.JButton();
-        solField = new javax.swing.JTextField();
-        area = new java.awt.TextArea();
+        _sol_comp = new javax.swing.JTextField();
+        _sol_comp_area = new java.awt.TextArea();
         _auto = new javax.swing.JButton();
-        resComp = new javax.swing.JLabel();
-        stats = new javax.swing.JLabel();
-        jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
+        _res_comp = new javax.swing.JLabel();
+        _stats = new javax.swing.JLabel();
+        _menu = new javax.swing.JMenuBar();
+        _igra = new javax.swing.JMenu();
         _newGame = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
         _exit = new javax.swing.JMenuItem();
-        opcije = new javax.swing.JMenu();
-        findAll = new javax.swing.JCheckBoxMenuItem();
-        vremeRacunanja = new javax.swing.JCheckBoxMenuItem();
+        _opcije = new javax.swing.JMenu();
+        _findAll = new javax.swing.JCheckBoxMenuItem();
+        _showStats = new javax.swing.JCheckBoxMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Moj broj");
         setBackground(new java.awt.Color(43, 155, 243));
         setForeground(new java.awt.Color(0, 153, 255));
+        setLocation(new java.awt.Point(0, 0));
         setResizable(false);
 
-        jPanel1.setBackground(new java.awt.Color(51, 153, 255));
-        jPanel1.setForeground(new java.awt.Color(255, 255, 255));
+        _panel_form.setBackground(new java.awt.Color(51, 153, 255));
+        _panel_form.setForeground(new java.awt.Color(255, 255, 255));
 
         _stop.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         _stop.setText("STOP");
@@ -389,18 +396,18 @@ public class Screen extends javax.swing.JFrame {
             }
         });
 
-        jPanel2.setBackground(new java.awt.Color(51, 153, 255));
+        _panel_numbers.setBackground(new java.awt.Color(51, 153, 255));
 
-        lab7.setBackground(new java.awt.Color(255, 51, 51));
-        lab7.setFont(new java.awt.Font("Tahoma", 0, 90)); // NOI18N
-        lab7.setForeground(new java.awt.Color(255, 255, 255));
-        lab7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lab7.setText("0");
-        lab7.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
-        lab7.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        lab7.addMouseListener(new java.awt.event.MouseAdapter() {
+        lab4.setBackground(new java.awt.Color(255, 51, 51));
+        lab4.setFont(new java.awt.Font("Tahoma", 0, 90)); // NOI18N
+        lab4.setForeground(new java.awt.Color(255, 255, 255));
+        lab4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lab4.setText("0");
+        lab4.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
+        lab4.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        lab4.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                lab7MouseClicked(evt);
+                lab4MouseClicked(evt);
             }
         });
 
@@ -430,24 +437,24 @@ public class Screen extends javax.swing.JFrame {
             }
         });
 
-        lab4.setBackground(new java.awt.Color(255, 51, 51));
-        lab4.setFont(new java.awt.Font("Tahoma", 0, 90)); // NOI18N
-        lab4.setForeground(new java.awt.Color(255, 255, 255));
-        lab4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lab4.setText("0");
-        lab4.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
-        lab4.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        lab4.addMouseListener(new java.awt.event.MouseAdapter() {
+        lab7.setBackground(new java.awt.Color(255, 51, 51));
+        lab7.setFont(new java.awt.Font("Tahoma", 0, 90)); // NOI18N
+        lab7.setForeground(new java.awt.Color(255, 255, 255));
+        lab7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lab7.setText("0");
+        lab7.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
+        lab7.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        lab7.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                lab4MouseClicked(evt);
+                lab7MouseClicked(evt);
             }
         });
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+        javax.swing.GroupLayout _panel_numbersLayout = new javax.swing.GroupLayout(_panel_numbers);
+        _panel_numbers.setLayout(_panel_numbersLayout);
+        _panel_numbersLayout.setHorizontalGroup(
+            _panel_numbersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(_panel_numbersLayout.createSequentialGroup()
                 .addComponent(lab4, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lab5, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -456,16 +463,16 @@ public class Screen extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lab7, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+        _panel_numbersLayout.setVerticalGroup(
+            _panel_numbersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(_panel_numbersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(lab4, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(lab5, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(lab6, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(lab7, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        number.setBackground(new java.awt.Color(51, 153, 255));
+        _panel_target.setBackground(new java.awt.Color(51, 153, 255));
 
         lab1.setBackground(new java.awt.Color(255, 255, 255));
         lab1.setFont(new java.awt.Font("Tahoma", 0, 90)); // NOI18N
@@ -492,22 +499,22 @@ public class Screen extends javax.swing.JFrame {
         lab3.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         lab3.setPreferredSize(new java.awt.Dimension(50, 100));
 
-        javax.swing.GroupLayout numberLayout = new javax.swing.GroupLayout(number);
-        number.setLayout(numberLayout);
-        numberLayout.setHorizontalGroup(
-            numberLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(numberLayout.createSequentialGroup()
+        javax.swing.GroupLayout _panel_targetLayout = new javax.swing.GroupLayout(_panel_target);
+        _panel_target.setLayout(_panel_targetLayout);
+        _panel_targetLayout.setHorizontalGroup(
+            _panel_targetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(_panel_targetLayout.createSequentialGroup()
                 .addComponent(lab1, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lab2, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(lab3, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
-        numberLayout.setVerticalGroup(
-            numberLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, numberLayout.createSequentialGroup()
+        _panel_targetLayout.setVerticalGroup(
+            _panel_targetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, _panel_targetLayout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
-                .addGroup(numberLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(_panel_targetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lab1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lab2, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lab3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -539,20 +546,23 @@ public class Screen extends javax.swing.JFrame {
             }
         });
 
+        _restart.setBackground(new java.awt.Color(51, 153, 255));
+        _restart.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/restart-30.png"))); // NOI18N
+        _restart.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
         _restart.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 _restartActionPerformed(evt);
             }
         });
 
-        userSolution.setEditable(false);
-        userSolution.setBackground(new java.awt.Color(51, 153, 255));
-        userSolution.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
-        userSolution.setForeground(new java.awt.Color(255, 255, 255));
-        userSolution.setHorizontalAlignment(javax.swing.JTextField.LEFT);
-        userSolution.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
+        _sol_user.setEditable(false);
+        _sol_user.setBackground(new java.awt.Color(51, 153, 255));
+        _sol_user.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
+        _sol_user.setForeground(new java.awt.Color(255, 255, 255));
+        _sol_user.setHorizontalAlignment(javax.swing.JTextField.LEFT);
+        _sol_user.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
 
-        ops.setBackground(new java.awt.Color(51, 153, 255));
+        _panel_ops.setBackground(new java.awt.Color(51, 153, 255));
 
         _op_plus.setBackground(new java.awt.Color(51, 153, 255));
         _op_plus.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
@@ -565,14 +575,14 @@ public class Screen extends javax.swing.JFrame {
             }
         });
 
-        _op_minus1.setBackground(new java.awt.Color(51, 153, 255));
-        _op_minus1.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
-        _op_minus1.setForeground(new java.awt.Color(255, 255, 255));
-        _op_minus1.setText("-");
-        _op_minus1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
-        _op_minus1.addActionListener(new java.awt.event.ActionListener() {
+        _op_minus.setBackground(new java.awt.Color(51, 153, 255));
+        _op_minus.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        _op_minus.setForeground(new java.awt.Color(255, 255, 255));
+        _op_minus.setText("-");
+        _op_minus.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
+        _op_minus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                _op_minus1ActionPerformed(evt);
+                _op_minusActionPerformed(evt);
             }
         });
 
@@ -598,37 +608,37 @@ public class Screen extends javax.swing.JFrame {
             }
         });
 
-        javax.swing.GroupLayout opsLayout = new javax.swing.GroupLayout(ops);
-        ops.setLayout(opsLayout);
-        opsLayout.setHorizontalGroup(
-            opsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(opsLayout.createSequentialGroup()
+        javax.swing.GroupLayout _panel_opsLayout = new javax.swing.GroupLayout(_panel_ops);
+        _panel_ops.setLayout(_panel_opsLayout);
+        _panel_opsLayout.setHorizontalGroup(
+            _panel_opsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(_panel_opsLayout.createSequentialGroup()
                 .addGap(5, 5, 5)
                 .addComponent(_op_plus, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(16, 16, 16)
-                .addComponent(_op_minus1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(_op_minus, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(16, 16, 16)
                 .addComponent(_op_puta, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(16, 16, 16)
                 .addComponent(_op_podeljeno, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
-        opsLayout.setVerticalGroup(
-            opsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(opsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+        _panel_opsLayout.setVerticalGroup(
+            _panel_opsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(_panel_opsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(_op_plus, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addComponent(_op_minus1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(_op_minus, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(_op_puta, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(_op_podeljeno, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        resField.setBackground(new java.awt.Color(255, 255, 255));
-        resField.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
-        resField.setForeground(new java.awt.Color(255, 255, 255));
-        resField.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        resField.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
-        resField.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        _res_user.setBackground(new java.awt.Color(255, 255, 255));
+        _res_user.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
+        _res_user.setForeground(new java.awt.Color(255, 255, 255));
+        _res_user.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        _res_user.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
+        _res_user.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
-        zagrade.setBackground(new java.awt.Color(51, 153, 255));
+        _panel_parentheses.setBackground(new java.awt.Color(51, 153, 255));
 
         _op_otv_zagrada.setBackground(new java.awt.Color(51, 153, 255));
         _op_otv_zagrada.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
@@ -652,28 +662,28 @@ public class Screen extends javax.swing.JFrame {
             }
         });
 
-        javax.swing.GroupLayout zagradeLayout = new javax.swing.GroupLayout(zagrade);
-        zagrade.setLayout(zagradeLayout);
-        zagradeLayout.setHorizontalGroup(
-            zagradeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(zagradeLayout.createSequentialGroup()
+        javax.swing.GroupLayout _panel_parenthesesLayout = new javax.swing.GroupLayout(_panel_parentheses);
+        _panel_parentheses.setLayout(_panel_parenthesesLayout);
+        _panel_parenthesesLayout.setHorizontalGroup(
+            _panel_parenthesesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(_panel_parenthesesLayout.createSequentialGroup()
                 .addComponent(_op_otv_zagrada, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(_op_zatv_zagrada, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
-        zagradeLayout.setVerticalGroup(
-            zagradeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(zagradeLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+        _panel_parenthesesLayout.setVerticalGroup(
+            _panel_parenthesesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(_panel_parenthesesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(_op_otv_zagrada, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(_op_zatv_zagrada, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        jPanel4.setBackground(new java.awt.Color(51, 153, 255));
+        _panel_buttons.setBackground(new java.awt.Color(51, 153, 255));
 
         no.setBackground(new java.awt.Color(51, 153, 255));
         no.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         no.setForeground(new java.awt.Color(255, 255, 255));
-        no.setText("no");
+        no.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/cross1.png"))); // NOI18N
         no.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
         no.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -684,7 +694,7 @@ public class Screen extends javax.swing.JFrame {
         yes.setBackground(new java.awt.Color(51, 153, 255));
         yes.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         yes.setForeground(new java.awt.Color(255, 255, 255));
-        yes.setText("yes");
+        yes.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/tick1.png"))); // NOI18N
         yes.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
         yes.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -703,141 +713,141 @@ public class Screen extends javax.swing.JFrame {
             }
         });
 
-        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-        jPanel4.setLayout(jPanel4Layout);
-        jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
+        javax.swing.GroupLayout _panel_buttonsLayout = new javax.swing.GroupLayout(_panel_buttons);
+        _panel_buttons.setLayout(_panel_buttonsLayout);
+        _panel_buttonsLayout.setHorizontalGroup(
+            _panel_buttonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(_panel_buttonsLayout.createSequentialGroup()
                 .addComponent(no, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(16, 16, 16)
                 .addComponent(yes, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(16, 16, 16)
                 .addComponent(computer, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
-        jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+        _panel_buttonsLayout.setVerticalGroup(
+            _panel_buttonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(_panel_buttonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(no, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(yes, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(computer, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        solField.setEditable(false);
-        solField.setBackground(new java.awt.Color(51, 153, 255));
-        solField.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
-        solField.setForeground(new java.awt.Color(255, 255, 255));
-        solField.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
+        _sol_comp.setEditable(false);
+        _sol_comp.setBackground(new java.awt.Color(51, 153, 255));
+        _sol_comp.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
+        _sol_comp.setForeground(new java.awt.Color(255, 255, 255));
+        _sol_comp.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
 
-        area.setBackground(new java.awt.Color(51, 153, 255));
-        area.setEditable(false);
-        area.setFont(new java.awt.Font("Dialog", 0, 36)); // NOI18N
-        area.setForeground(new java.awt.Color(255, 255, 255));
-        area.setPreferredSize(new java.awt.Dimension(419, 100));
-        area.setVisible(false);
+        _sol_comp_area.setBackground(new java.awt.Color(51, 153, 255));
+        _sol_comp_area.setEditable(false);
+        _sol_comp_area.setFont(new java.awt.Font("Dialog", 0, 36)); // NOI18N
+        _sol_comp_area.setForeground(new java.awt.Color(255, 255, 255));
+        _sol_comp_area.setPreferredSize(new java.awt.Dimension(419, 100));
+        _sol_comp_area.setVisible(false);
 
+        _auto.setBackground(new java.awt.Color(51, 153, 255));
+        _auto.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/auto.png"))); // NOI18N
+        _auto.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
         _auto.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 _autoActionPerformed(evt);
             }
         });
 
-        resComp.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
-        resComp.setForeground(new java.awt.Color(255, 255, 255));
-        resComp.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        resComp.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
+        _res_comp.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
+        _res_comp.setForeground(new java.awt.Color(255, 255, 255));
+        _res_comp.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        _res_comp.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
 
-        stats.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        stats.setForeground(new java.awt.Color(255, 255, 255));
-        stats.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
+        _stats.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        _stats.setForeground(new java.awt.Color(255, 255, 255));
+        _stats.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(300, Short.MAX_VALUE)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(_stop, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(321, 321, 321))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(_restart, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(number, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(216, 216, 216)
-                        .addComponent(_auto, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+        javax.swing.GroupLayout _panel_formLayout = new javax.swing.GroupLayout(_panel_form);
+        _panel_form.setLayout(_panel_formLayout);
+        _panel_formLayout.setHorizontalGroup(
+            _panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, _panel_formLayout.createSequentialGroup()
                 .addGap(47, 47, 47)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(stats, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(area, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(ops, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(_panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(_stats, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(_sol_comp_area, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addGroup(_panel_formLayout.createSequentialGroup()
+                        .addGroup(_panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(_panel_formLayout.createSequentialGroup()
+                                .addGroup(_panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(_panel_numbers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(_panel_ops, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(40, 40, 40)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(zagrade, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(_panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(_panel_parentheses, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(lab8, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addComponent(userSolution, javax.swing.GroupLayout.PREFERRED_SIZE, 419, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(solField, javax.swing.GroupLayout.PREFERRED_SIZE, 419, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(_sol_user, javax.swing.GroupLayout.PREFERRED_SIZE, 419, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(_sol_comp, javax.swing.GroupLayout.PREFERRED_SIZE, 419, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 66, Short.MAX_VALUE)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(_panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(lab9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(resField, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(resComp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(_res_user, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(_panel_buttons, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(_res_comp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addGap(47, 47, 47))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addContainerGap()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, _panel_formLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(_panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, _panel_formLayout.createSequentialGroup()
+                        .addComponent(_stop, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(320, 320, 320))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, _panel_formLayout.createSequentialGroup()
+                        .addComponent(_auto, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(11, 11, 11)
                         .addComponent(_restart, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(_auto, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGap(55, 55, 55)
-                        .addComponent(number, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGap(12, 12, 12))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, _panel_formLayout.createSequentialGroup()
+                        .addComponent(_panel_target, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(265, 265, 265))))
+        );
+        _panel_formLayout.setVerticalGroup(
+            _panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(_panel_formLayout.createSequentialGroup()
+                .addGap(12, 12, 12)
+                .addGroup(_panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(_restart, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(_auto, javax.swing.GroupLayout.DEFAULT_SIZE, 41, Short.MAX_VALUE))
+                .addGap(24, 24, 24)
+                .addComponent(_panel_target, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(14, 14, 14)
                 .addComponent(_stop, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(23, 23, 23)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGap(14, 14, 14)
+                .addGroup(_panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(_panel_numbers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(_panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(lab8, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(lab9, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(_panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(_panel_formLayout.createSequentialGroup()
+                        .addComponent(_panel_buttons, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(resField, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(ops, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(zagrade, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(_res_user, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(_panel_formLayout.createSequentialGroup()
+                        .addGroup(_panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(_panel_ops, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(_panel_parentheses, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
-                        .addComponent(userSolution, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(_sol_user, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(23, 23, 23)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(solField, javax.swing.GroupLayout.DEFAULT_SIZE, 69, Short.MAX_VALUE)
-                    .addComponent(resComp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(_panel_formLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(_sol_comp, javax.swing.GroupLayout.DEFAULT_SIZE, 69, Short.MAX_VALUE)
+                    .addComponent(_res_comp, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(1, 1, 1)
-                .addComponent(area, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(_sol_comp_area, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(stats, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(255, 255, 255))
+                .addComponent(_stats, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(180, 180, 180))
         );
 
-        jMenu1.setText("Igra");
-        jMenu1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        _igra.setText("Igra");
+        _igra.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
 
         _newGame.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         _newGame.setText("Nova igra");
@@ -846,8 +856,8 @@ public class Screen extends javax.swing.JFrame {
                 _newGameActionPerformed(evt);
             }
         });
-        jMenu1.add(_newGame);
-        jMenu1.add(jSeparator1);
+        _igra.add(_newGame);
+        _igra.add(jSeparator1);
 
         _exit.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         _exit.setText("Kraj");
@@ -856,46 +866,46 @@ public class Screen extends javax.swing.JFrame {
                 _exitActionPerformed(evt);
             }
         });
-        jMenu1.add(_exit);
+        _igra.add(_exit);
 
-        jMenuBar1.add(jMenu1);
+        _menu.add(_igra);
 
-        opcije.setText("Opcije");
-        opcije.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        _opcije.setText("Opcije");
+        _opcije.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
 
-        findAll.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        findAll.setSelected(true);
-        findAll.setText("Nadji sva resenja");
-        findAll.addActionListener(new java.awt.event.ActionListener() {
+        _findAll.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        _findAll.setSelected(true);
+        _findAll.setText("Nadji sva resenja");
+        _findAll.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                findAllActionPerformed(evt);
+                _findAllActionPerformed(evt);
             }
         });
-        opcije.add(findAll);
+        _opcije.add(_findAll);
 
-        vremeRacunanja.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        vremeRacunanja.setSelected(true);
-        vremeRacunanja.setText("Prikazi vreme racunanja");
-        vremeRacunanja.addChangeListener(new javax.swing.event.ChangeListener() {
+        _showStats.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        _showStats.setSelected(true);
+        _showStats.setText("Prikazi vreme racunanja");
+        _showStats.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                vremeRacunanjaStateChanged(evt);
+                _showStatsStateChanged(evt);
             }
         });
-        opcije.add(vremeRacunanja);
+        _opcije.add(_showStats);
 
-        jMenuBar1.add(opcije);
+        _menu.add(_opcije);
 
-        setJMenuBar(jMenuBar1);
+        setJMenuBar(_menu);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(_panel_form, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(_panel_form, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
@@ -911,7 +921,7 @@ public class Screen extends javax.swing.JFrame {
 
     private void _restartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__restartActionPerformed
         thread_run = false;
-        t1.interrupt();
+        t.interrupt();
         restart();
     }//GEN-LAST:event__restartActionPerformed
 
@@ -973,9 +983,9 @@ public class Screen extends javax.swing.JFrame {
         set = true;
     }//GEN-LAST:event__stopActionPerformed
 
-    private void _op_minus1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__op_minus1ActionPerformed
+    private void _op_minusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__op_minusActionPerformed
         addOperation("-");
-    }//GEN-LAST:event__op_minus1ActionPerformed
+    }//GEN-LAST:event__op_minusActionPerformed
 
     private void _op_podeljenoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__op_podeljenoActionPerformed
         addOperation("/");
@@ -997,7 +1007,7 @@ public class Screen extends javax.swing.JFrame {
 
     private void computerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_computerActionPerformed
         if (started) {
-            area.setText("");
+            _sol_comp_area.setText("");
             solve();
             computer.setEnabled(false);
         }
@@ -1012,50 +1022,50 @@ public class Screen extends javax.swing.JFrame {
         set = true;
     }//GEN-LAST:event__autoActionPerformed
 
-    private void vremeRacunanjaStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_vremeRacunanjaStateChanged
-        if (vremeRacunanja.isSelected()) {
-            stats.setVisible(true);
+    private void _showStatsStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event__showStatsStateChanged
+        if (_showStats.isSelected()) {
+            _stats.setVisible(true);
         } else {
-            stats.setVisible(false);
+            _stats.setVisible(false);
         }
-    }//GEN-LAST:event_vremeRacunanjaStateChanged
+    }//GEN-LAST:event__showStatsStateChanged
 
-    private void findAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_findAllActionPerformed
-        if (findAll.isSelected()) {
-            jPanel1.setVisible(false);      //ZASTO OVO RESAVA BUG!?!?!?    repaint()??
+    private void _findAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__findAllActionPerformed
+        if (_findAll.isSelected()) {
+            _panel_form.setVisible(false);      //ZASTO OVO RESAVA BUG!?!?!?    repaint()??
 
-            area.setVisible(true);
-            solField.setVisible(false);
-            resComp.setVisible(false);
+            _sol_comp_area.setVisible(true);
+            _sol_comp.setVisible(false);
+            _res_comp.setVisible(false);
 
             computer.setEnabled(true);
 
-            area.setText("");
-            stats.setText("");
-            solField.setText("");
-            resComp.setText("");
+            _sol_comp_area.setText("");
+            _stats.setText("");
+            _sol_comp.setText("");
+            _res_comp.setText("");
 
-            jPanel1.setVisible(true);
+            _panel_form.setVisible(true);
         } else {
-            jPanel1.setVisible(false);
+            _panel_form.setVisible(false);
 
-            area.setVisible(false);
-            solField.setVisible(true);
-            resComp.setVisible(true);
+            _sol_comp_area.setVisible(false);
+            _sol_comp.setVisible(true);
+            _res_comp.setVisible(true);
 
             computer.setEnabled(true);
 
-            stats.setText("");
-            solField.setText("");
-            resComp.setText("");
+            _stats.setText("");
+            _sol_comp.setText("");
+            _res_comp.setText("");
 
-            jPanel1.setVisible(true);
+            _panel_form.setVisible(true);
         }
-    }//GEN-LAST:event_findAllActionPerformed
+    }//GEN-LAST:event__findAllActionPerformed
 
     private void _newGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__newGameActionPerformed
         thread_run = false;
-        t1.interrupt();
+        t.interrupt();
         restart();
     }//GEN-LAST:event__newGameActionPerformed
 
@@ -1101,23 +1111,33 @@ public class Screen extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton _auto;
     private javax.swing.JMenuItem _exit;
+    private javax.swing.JCheckBoxMenuItem _findAll;
+    private javax.swing.JMenu _igra;
+    private javax.swing.JMenuBar _menu;
     private javax.swing.JMenuItem _newGame;
-    private javax.swing.JButton _op_minus1;
+    private javax.swing.JButton _op_minus;
     private javax.swing.JButton _op_otv_zagrada;
     private javax.swing.JButton _op_plus;
     private javax.swing.JButton _op_podeljeno;
     private javax.swing.JButton _op_puta;
     private javax.swing.JButton _op_zatv_zagrada;
+    private javax.swing.JMenu _opcije;
+    private javax.swing.JPanel _panel_buttons;
+    private javax.swing.JPanel _panel_form;
+    private javax.swing.JPanel _panel_numbers;
+    private javax.swing.JPanel _panel_ops;
+    private javax.swing.JPanel _panel_parentheses;
+    private javax.swing.JPanel _panel_target;
+    private javax.swing.JLabel _res_comp;
+    private javax.swing.JLabel _res_user;
     private javax.swing.JButton _restart;
+    private javax.swing.JCheckBoxMenuItem _showStats;
+    private javax.swing.JTextField _sol_comp;
+    private java.awt.TextArea _sol_comp_area;
+    private javax.swing.JTextField _sol_user;
+    private javax.swing.JLabel _stats;
     private javax.swing.JButton _stop;
-    private java.awt.TextArea area;
     private javax.swing.JButton computer;
-    private javax.swing.JCheckBoxMenuItem findAll;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel4;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JLabel lab1;
     private javax.swing.JLabel lab2;
@@ -1129,16 +1149,6 @@ public class Screen extends javax.swing.JFrame {
     private javax.swing.JLabel lab8;
     private javax.swing.JLabel lab9;
     private javax.swing.JButton no;
-    private javax.swing.JPanel number;
-    private javax.swing.JMenu opcije;
-    private javax.swing.JPanel ops;
-    private javax.swing.JLabel resComp;
-    private javax.swing.JLabel resField;
-    private javax.swing.JTextField solField;
-    private javax.swing.JLabel stats;
-    private javax.swing.JTextField userSolution;
-    private javax.swing.JCheckBoxMenuItem vremeRacunanja;
     private javax.swing.JButton yes;
-    private javax.swing.JPanel zagrade;
     // End of variables declaration//GEN-END:variables
 }

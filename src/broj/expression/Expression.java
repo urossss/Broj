@@ -101,7 +101,6 @@ public final class Expression {
     }
 
     public void formExpressionString() {
-        //this.expression = "";
         if (this.sign == 0) {
             return;
         }
@@ -147,7 +146,6 @@ public final class Expression {
             default:
                 break;
         }
-
     }
 
     public void setValidity() {

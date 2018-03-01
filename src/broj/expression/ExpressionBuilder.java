@@ -21,9 +21,9 @@ public class ExpressionBuilder {
 
     //Constructors
     public ExpressionBuilder() {
-        
+
     }
-    
+
     public ExpressionBuilder(Integer target, ArrayList<Integer> numbers) {
         this.target = target;
         this.numbers = numbers;
@@ -32,7 +32,7 @@ public class ExpressionBuilder {
         this.minDif = 999999;
         this.found = false;
     }
-    
+
     public void reset(int target, ArrayList<Integer> numbers) {
         this.target = target;
         this.numbers = numbers;
@@ -42,15 +42,15 @@ public class ExpressionBuilder {
         this.found = false;
         clearLists();
     }
-    
+
     public void findAll(boolean b) {
         this.findAll = b;
     }
-    
+
     public void findAll() {
         this.findAll = true;
     }
-    
+
     public void clearLists() {
         exp1.clear();
         exp2.clear();
@@ -64,20 +64,55 @@ public class ExpressionBuilder {
     public ArrayList<Expression> getSol() {
         return this.sol;
     }
-    
+
     public int getTotal() {
         return this.total;
     }
-    
-    public void sortNumbers() {     //sortira prva 4 ponudjena broja, da bi se kasnije izbegla neka dupla resenja
+
+    //sortira prva 4 ponudjena broja, da bi se kasnije izbegla neka dupla resenja
+    public void sortNumbers() {
         int a = numbers.get(0);
-        int b = numbers.get(0);
-        int c = numbers.get(0);
-        int d = numbers.get(0);
-        //...
+        int b = numbers.get(1);
+        int c = numbers.get(2);
+        int d = numbers.get(3);
+        int t;
+
+        if (a > b) {
+            t = a;
+            a = b;
+            b = t;
+        }
+        if (c > d) {
+            t = c;
+            c = d;
+            d = t;
+        }
+        if (a > c) {
+            t = a;
+            a = c;
+            c = t;
+        }
+        if (b > d) {
+            t = b;
+            b = d;
+            d = t;
+        }
+        if (b > c) {
+            t = b;
+            b = c;
+            c = t;
+        }
+        numbers.set(0, a);
+        numbers.set(1, b);
+        numbers.set(2, c);
+        numbers.set(3, d);
+        
+        Collections.reverse(numbers);   //samo da bi (mozda) bio lepsi rezultat: tipa 100+1 a ne 1+100;
     }
-    
+
     public void startBuild() {
+        sortNumbers();
+
         build1();
 
         buildUni(exp1, exp1, exp2);
@@ -95,8 +130,10 @@ public class ExpressionBuilder {
         buildUni(exp3, exp3, exp6);
 
         this.total = exp1.size() + exp2.size() + exp3.size() + exp4.size() + exp5.size() + exp6.size();
+
+        removeDuplicates();
     }
-    
+
     public boolean canMerge(Expression e1, Expression e2) {
         for (int n : e1.getIndexes()) {
             if (e2.getIndexes().contains(n)) {
@@ -114,6 +151,16 @@ public class ExpressionBuilder {
             //e.printParents();
         }
         System.out.println("Total: " + this.sol.size());
+    }
+
+    public void removeDuplicates() {
+        for (int i = 0; i < sol.size(); i++) {
+            for (int j = i+1; j < sol.size(); j++) {
+                if (sol.get(j).getExpression().equals(sol.get(i).getExpression())) {
+                    sol.remove(j);
+                }
+            }
+        }
     }
 
     public boolean asoc(Expression left, Expression right, char znak) {
