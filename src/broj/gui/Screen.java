@@ -14,6 +14,8 @@ public class Screen extends javax.swing.JFrame {
     private boolean thread_run;         //flag za zaustavljanje brojaca kad se svi brojevi izaberu ili se ide reset
     private boolean stop_all;           //true ako hocemo automatsko postavljanje brojeva - random
     private boolean started;        //true ako su brojevi zaustavljeni, moze se poceti racunanje
+    //private boolean done;           //true ako je korisnik odigrao svoje (kliknuo je da se izracuna uneti izraz)
+    private boolean comp;
 
     private Thread t;      //nit koja obavlja zaustavljanje brojeva
 
@@ -44,6 +46,7 @@ public class Screen extends javax.swing.JFrame {
         addLabs();
         _findAll.doClick();
         _showStats.doClick();
+
         restart();
     }
 
@@ -53,6 +56,7 @@ public class Screen extends javax.swing.JFrame {
         set = false;
         stop_all = false;
         started = false;
+        comp = false;
 
         //prazne se liste
         numbers.clear();
@@ -72,8 +76,14 @@ public class Screen extends javax.swing.JFrame {
         lab3.setText(" ");
 
         computer.setEnabled(true);
+        yes.setEnabled(true);
+        no.setEnabled(true);
         enableLabs();
         expString = "";
+
+        if (_compCanCalc.isSelected()) {
+            _compCanCalc.doClick();
+        }
 
         //pokrecu se brojaci za zaustavljanje brojeva
         t = new Thread() {
@@ -377,6 +387,7 @@ public class Screen extends javax.swing.JFrame {
         _opcije = new javax.swing.JMenu();
         _findAll = new javax.swing.JCheckBoxMenuItem();
         _showStats = new javax.swing.JCheckBoxMenuItem();
+        _compCanCalc = new javax.swing.JCheckBoxMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Moj broj");
@@ -388,8 +399,10 @@ public class Screen extends javax.swing.JFrame {
         _panel_form.setBackground(new java.awt.Color(51, 153, 255));
         _panel_form.setForeground(new java.awt.Color(255, 255, 255));
 
+        _stop.setBackground(new java.awt.Color(51, 153, 255));
         _stop.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         _stop.setText("STOP");
+        _stop.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
         _stop.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 _stopActionPerformed(evt);
@@ -547,7 +560,9 @@ public class Screen extends javax.swing.JFrame {
         });
 
         _restart.setBackground(new java.awt.Color(51, 153, 255));
-        _restart.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/restart-30.png"))); // NOI18N
+        _restart.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/restart.png"))); // NOI18N
+        _restart.setText("");
+        _restart.setToolTipText("");
         _restart.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
         _restart.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -683,7 +698,7 @@ public class Screen extends javax.swing.JFrame {
         no.setBackground(new java.awt.Color(51, 153, 255));
         no.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         no.setForeground(new java.awt.Color(255, 255, 255));
-        no.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/cross1.png"))); // NOI18N
+        no.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/cross.png"))); // NOI18N
         no.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
         no.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -694,7 +709,7 @@ public class Screen extends javax.swing.JFrame {
         yes.setBackground(new java.awt.Color(51, 153, 255));
         yes.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         yes.setForeground(new java.awt.Color(255, 255, 255));
-        yes.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/tick1.png"))); // NOI18N
+        yes.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/tick.png"))); // NOI18N
         yes.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
         yes.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -705,7 +720,7 @@ public class Screen extends javax.swing.JFrame {
         computer.setBackground(new java.awt.Color(51, 153, 255));
         computer.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         computer.setForeground(new java.awt.Color(255, 255, 255));
-        computer.setText("c");
+        computer.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/computer.png"))); // NOI18N
         computer.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
         computer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -747,6 +762,7 @@ public class Screen extends javax.swing.JFrame {
 
         _auto.setBackground(new java.awt.Color(51, 153, 255));
         _auto.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/auto.png"))); // NOI18N
+        _auto.setToolTipText("");
         _auto.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
         _auto.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -893,6 +909,16 @@ public class Screen extends javax.swing.JFrame {
         });
         _opcije.add(_showStats);
 
+        _compCanCalc.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        _compCanCalc.setSelected(true);
+        _compCanCalc.setText("Omoguci racun kompjutera");
+        _compCanCalc.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                _compCanCalcActionPerformed(evt);
+            }
+        });
+        _opcije.add(_compCanCalc);
+
         _menu.add(_opcije);
 
         setJMenuBar(_menu);
@@ -1002,14 +1028,19 @@ public class Screen extends javax.swing.JFrame {
     private void yesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_yesActionPerformed
         if (validExpression()) {
             calculate();
+            comp = true;
+            //yes.setEnabled(false);
+            //no.setEnabled(false);
         }
     }//GEN-LAST:event_yesActionPerformed
 
     private void computerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_computerActionPerformed
-        if (started) {
-            _sol_comp_area.setText("");
-            solve();
-            computer.setEnabled(false);
+        if (comp) {
+            if (started) {
+                _sol_comp_area.setText("");
+                solve();
+                computer.setEnabled(false);
+            }
         }
     }//GEN-LAST:event_computerActionPerformed
 
@@ -1073,6 +1104,14 @@ public class Screen extends javax.swing.JFrame {
         System.exit(0);
     }//GEN-LAST:event__exitActionPerformed
 
+    private void _compCanCalcActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__compCanCalcActionPerformed
+        if (_compCanCalc.isSelected()) {
+            comp = true;
+        } else {
+            comp = false;
+        }
+    }//GEN-LAST:event__compCanCalcActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1110,6 +1149,7 @@ public class Screen extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton _auto;
+    private javax.swing.JCheckBoxMenuItem _compCanCalc;
     private javax.swing.JMenuItem _exit;
     private javax.swing.JCheckBoxMenuItem _findAll;
     private javax.swing.JMenu _igra;
