@@ -43,7 +43,7 @@ public class InfixToPostfix {
                         }
                     } else {
                         String s = "";
-                        while (!helper.empty() && !zagrada(s) && !(s.equals("+") || s.equals('-'))) {
+                        while (!helper.empty() && !zagrada(s) && !(s.equals("+") || s.equals("-"))) {
                             if (!s.equals("")) {
                                 exp.add(s);
                             }
