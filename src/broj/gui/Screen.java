@@ -40,8 +40,7 @@ public class Screen extends javax.swing.JFrame {
         Image im = Toolkit.getDefaultToolkit().getImage(getClass().getResource("icons/icon_numbers2.png"));
         setIconImage(im);
 
-        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-        this.setLocation(dim.width / 2 - this.getSize().width / 2, dim.height / 2 - this.getSize().height / 2);
+        this.setLocationRelativeTo(null);
         //
         addLabs();
         _findAll.doClick();
@@ -561,8 +560,6 @@ public class Screen extends javax.swing.JFrame {
 
         _restart.setBackground(new java.awt.Color(51, 153, 255));
         _restart.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/restart.png"))); // NOI18N
-        _restart.setText("");
-        _restart.setToolTipText("");
         _restart.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
         _restart.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -762,7 +759,6 @@ public class Screen extends javax.swing.JFrame {
 
         _auto.setBackground(new java.awt.Color(51, 153, 255));
         _auto.setIcon(new javax.swing.ImageIcon(getClass().getResource("/broj/gui/icons/auto.png"))); // NOI18N
-        _auto.setToolTipText("");
         _auto.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 1, true));
         _auto.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

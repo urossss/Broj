@@ -7,7 +7,7 @@ public class Broj {
 
     public static void main(String[] args) {
         
-        Scanner reader = new Scanner(System.in);
+        //Scanner reader = new Scanner(System.in);
         
         /*Integer target;
         ArrayList<Integer> numbers = new ArrayList<>();
@@ -22,7 +22,7 @@ public class Broj {
             numbers.add(n);
         }*/
         
-        System.out.println("Unesite izraz:");
+        /*System.out.println("Unesite izraz:");
         String s = reader.nextLine();
         ArrayList<String> rpn;
         
@@ -30,7 +30,7 @@ public class Broj {
         rpn = converter.convert(s);
         System.out.print(s + " = ");
         converter.printExpression();
-        System.out.println(" = " + PostfixCalculator.evaluateExpression(rpn));
+        System.out.println(" = " + PostfixCalculator.evaluateExpression(rpn));*/
         
         /*ExpressionBuilder builder = new ExpressionBuilder(target, numbers);
         
