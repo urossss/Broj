@@ -4,17 +4,17 @@ import java.util.*;
 
 public class InfixToPostfix {
 
-    private ArrayList<String> exp;
-    private String operators = "+-*/";
-    private Stack<String> helper = new Stack<>();
+    private static ArrayList<String> exp;
+    private static String operators = "+-*/";
+    private static Stack<String> helper = new Stack<>();
 
-    public ArrayList<String> convert(String s) {
+    public static ArrayList<String> convert(String s) {
         setExpression(s);
-        return this.exp;
+        return exp;
     }
 
-    public void setExpression(String expression) {
-        this.exp = new ArrayList<String>();
+    public static void setExpression(String expression) {
+        exp = new ArrayList<String>();
         for (int i = 0; i < expression.length(); i++) {
             char c = expression.charAt(i);
 
@@ -26,7 +26,7 @@ public class InfixToPostfix {
                     exp.add(elem);
                     elem = helper.pop();
                 }
-            } else if (this.operators.contains("" + c)) {   //operacija
+            } else if (operators.contains("" + c)) {   //operacija
                 if (!helper.empty()) {
                     if (c == '+' || c == '-') {
                         String s = "";
@@ -38,7 +38,7 @@ public class InfixToPostfix {
                         }
                         if (zagrada(s)) {
                             helper.push(s);
-                        } else {
+                        } else if (!s.equals("")) {
                             exp.add(s);
                         }
                     } else {
@@ -51,7 +51,7 @@ public class InfixToPostfix {
                         }
                         if ((s.equals("+") || s.equals("-")) || (zagrada(s))) {
                             helper.push(s);
-                        } else {
+                        } else if (!s.equals("")) {
                             exp.add(s);
                         }
                     }
@@ -77,11 +77,11 @@ public class InfixToPostfix {
         }
     }
     
-    public boolean zagrada(String s) {
+    private static boolean zagrada(String s) {
         return (s.equals("(")) || (s.equals(")"));
     }
 
-    public void printHelper() {
+    private static void printHelper() {
         System.out.print("Helper: ");
         for (String s : helper) {
             System.out.print(s + " ");
@@ -89,8 +89,8 @@ public class InfixToPostfix {
         System.out.println("");
     }
 
-    public void printExpression() {
-        for (String s : this.exp) {
+    private static void printExpression() {
+        for (String s : exp) {
             System.out.print(s);
         }
     }

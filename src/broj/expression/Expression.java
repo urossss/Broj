@@ -18,28 +18,11 @@ public final class Expression {
         this.left = exp1;
         this.right = exp2;
         this.sign = op;
-        this.expression = "";
+        
+        //formExpressionString();
+        this.expression = "";   // radi efikasnosti cemo izraz u formi stringa formirati tek kada nam zaista zatreba
 
-        switch (op) {
-            case '+':
-                this.value = exp1.getValue() + exp2.getValue();
-                this.priority = 1;
-                break;
-            case '-':
-                this.value = exp1.getValue() - exp2.getValue();
-                this.priority = 1;
-                break;
-            case '*':
-                this.value = exp1.getValue() * exp2.getValue();
-                this.priority = 2;
-                break;
-            case '/':
-                this.value = exp1.getValue() / exp2.getValue();
-                this.priority = 2;
-                break;
-            default:
-                break;
-        }
+        formValue();
 
         this.num = exp1.getNum() + exp2.getNum();
 
@@ -57,50 +40,31 @@ public final class Expression {
 
         //setValidity();
     }
-
-    public String getExpression() {
-        formExpressionString();
-        return this.expression;
-    }
-
-    public double getValue() {
-        return this.value;
-    }
-
-    public int getNum() {
-        return this.num;
-    }
-
-    public int getPriority() {
-        return this.priority;
-    }
-
-    public boolean getValidity() {
-        return this.valid;
-    }
-
-    public ArrayList<Integer> getIndexes() {
-        return this.indexes;
-    }
-
-    public char getSign() {
-        return this.sign;
-    }
     
-    public Expression getLeft() {
-        return this.left;
-    }
-    
-    public Expression getRight() {
-        return this.right;
-    }
-    
-    public void printExpression() {
-        formExpressionString();
-        System.out.println(this);
+    private void formValue() {
+        switch (sign) {
+            case '+':
+                this.value = left.getValue() + right.getValue();
+                this.priority = 1;
+                break;
+            case '-':
+                this.value = left.getValue() - right.getValue();
+                this.priority = 1;
+                break;
+            case '*':
+                this.value = left.getValue() * right.getValue();
+                this.priority = 2;
+                break;
+            case '/':
+                this.value = left.getValue() / right.getValue();
+                this.priority = 2;
+                break;
+            default:
+                break;
+        }
     }
 
-    public void formExpressionString() {
+    private void formExpressionString() {
         if (this.sign == 0) {
             return;
         }
@@ -146,6 +110,48 @@ public final class Expression {
             default:
                 break;
         }
+    }
+
+    public String getExpression() {
+        formExpressionString();
+        return this.expression;
+    }
+
+    public double getValue() {
+        return this.value;
+    }
+
+    public int getNum() {
+        return this.num;
+    }
+
+    public int getPriority() {
+        return this.priority;
+    }
+
+    public boolean isValid() {
+        return this.valid;
+    }
+
+    public ArrayList<Integer> getIndexes() {
+        return this.indexes;
+    }
+
+    public char getSign() {
+        return this.sign;
+    }
+    
+    public Expression getLeft() {
+        return this.left;
+    }
+    
+    public Expression getRight() {
+        return this.right;
+    }
+    
+    public void printExpression() {
+        formExpressionString();
+        System.out.println(this);
     }
 
     public void setValidity() {

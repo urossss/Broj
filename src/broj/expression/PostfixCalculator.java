@@ -8,7 +8,7 @@ public class PostfixCalculator {
     private static String operators = "+-*/";
     private static Stack<String> stack = new Stack<String>();
 
-    public static void setExpression(ArrayList<String> exp) {
+    private static void setExpression(ArrayList<String> exp) {
         expression = exp;
     }
 
@@ -34,7 +34,7 @@ public class PostfixCalculator {
         return returnValue;
     }
 
-    public static double performOperation(int operation, double num1, double num2) {
+    private static double performOperation(int operation, double num1, double num2) {
         switch (operation) {
             case 0:
                 return num1 + num2;

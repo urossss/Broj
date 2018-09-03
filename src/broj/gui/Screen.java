@@ -26,7 +26,6 @@ public class Screen extends javax.swing.JFrame {
     private ArrayList<String> exp = new ArrayList<>();          //izraz koji korisnik unosi
     private String expString;                                   //izraz koji korisnik unosi, u formi stringa, za ispis
 
-    private InfixToPostfix converter = new InfixToPostfix();        //konvertuje izraz koji korisnik unese u postfiksnu notaciju
     private ExpressionBuilder builder = new ExpressionBuilder();    //nalazi tacan broj
     private ArrayList<Expression> sol = new ArrayList<>();          //lista resenja koje racunar nadje
     private int total;                                              //ukupan broj izracunatih izraza
@@ -123,7 +122,7 @@ public class Screen extends javax.swing.JFrame {
     }
 
     public void countdown(JLabel lab, Thread t, int mode) {
-        int i = mode;
+        int i;
         if (!t.isInterrupted()) {
             do {
                 if (mode == 0) {
@@ -196,7 +195,7 @@ public class Screen extends javax.swing.JFrame {
     }
 
     //kad se klikne ponudjeni broj
-    public boolean addNumber(String num) {
+    public boolean clickNumber(String num) {
         if (started) {
             if (exp.isEmpty() || isOp(exp.get(exp.size() - 1)) || exp.get(exp.size() - 1).equals("(")) {
                 exp.add(num);
@@ -209,7 +208,7 @@ public class Screen extends javax.swing.JFrame {
     }
 
     //kad se klikne operacija
-    public void addOperation(String op) {
+    public void clickOperation(String op) {
         if (started) {
             if (!(exp.isEmpty() || allNumbersUsed() || isOp(exp.get(exp.size() - 1)) || exp.get(exp.size() - 1).equals("("))) {
                 exp.add(op);
@@ -220,7 +219,7 @@ public class Screen extends javax.swing.JFrame {
     }
 
     //kad se klikne otvorena zagrada
-    public void addOpenPar() {
+    public void clickOpenPar() {
         if (started) {
             if (exp.isEmpty() || exp.get(exp.size() - 1).equals("(") || isOp(exp.get(exp.size() - 1))) {
                 exp.add("(");
@@ -231,7 +230,7 @@ public class Screen extends javax.swing.JFrame {
     }
 
     //kad se klikne zatvorena zagrada
-    public void addClosedPar() {
+    public void clickClosedPar() {
         if (started) {
             if (!(exp.isEmpty() || isOp(exp.get(exp.size() - 1)) || exp.get(exp.size() - 1).equals("("))) {
                 int open = 0;
@@ -291,7 +290,7 @@ public class Screen extends javax.swing.JFrame {
 
     //racunanje izraza koji korisnik unese
     public void calculate() {
-        double result = PostfixCalculator.evaluateExpression(converter.convert(_sol_user.getText()));
+        double result = PostfixCalculator.evaluateExpression(InfixToPostfix.convert(_sol_user.getText()));
         String resString;
         if (Math.floor(result) == Math.ceil(result)) {
             resString = Math.round(result) + "";
@@ -934,11 +933,11 @@ public class Screen extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void _op_putaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__op_putaActionPerformed
-        addOperation("*");
+        clickOperation("*");
     }//GEN-LAST:event__op_putaActionPerformed
 
     private void _op_plusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__op_plusActionPerformed
-        addOperation("+");
+        clickOperation("+");
     }//GEN-LAST:event__op_plusActionPerformed
 
     private void _restartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__restartActionPerformed
@@ -949,7 +948,7 @@ public class Screen extends javax.swing.JFrame {
 
     private void lab9MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lab9MouseClicked
         if (lab9.isEnabled()) {
-            if (addNumber(lab9.getText())) {
+            if (clickNumber(lab9.getText())) {
                 lab9.setEnabled(false);
                 disabledLabs.add(lab9);
             }
@@ -958,7 +957,7 @@ public class Screen extends javax.swing.JFrame {
 
     private void lab8MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lab8MouseClicked
         if (lab8.isEnabled()) {
-            if (addNumber(lab8.getText())) {
+            if (clickNumber(lab8.getText())) {
                 lab8.setEnabled(false);
                 disabledLabs.add(lab8);
             }
@@ -967,7 +966,7 @@ public class Screen extends javax.swing.JFrame {
 
     private void lab4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lab4MouseClicked
         if (lab4.isEnabled()) {
-            if (addNumber(lab4.getText())) {
+            if (clickNumber(lab4.getText())) {
                 lab4.setEnabled(false);
                 disabledLabs.add(lab4);
             }
@@ -976,7 +975,7 @@ public class Screen extends javax.swing.JFrame {
 
     private void lab6MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lab6MouseClicked
         if (lab6.isEnabled()) {
-            if (addNumber(lab6.getText())) {
+            if (clickNumber(lab6.getText())) {
                 lab6.setEnabled(false);
                 disabledLabs.add(lab6);
             }
@@ -985,7 +984,7 @@ public class Screen extends javax.swing.JFrame {
 
     private void lab5MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lab5MouseClicked
         if (lab5.isEnabled()) {
-            if (addNumber(lab5.getText())) {
+            if (clickNumber(lab5.getText())) {
                 lab5.setEnabled(false);
                 disabledLabs.add(lab5);
             }
@@ -994,7 +993,7 @@ public class Screen extends javax.swing.JFrame {
 
     private void lab7MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lab7MouseClicked
         if (lab7.isEnabled()) {
-            if (addNumber(lab7.getText())) {
+            if (clickNumber(lab7.getText())) {
                 lab7.setEnabled(false);
                 disabledLabs.add(lab7);
             }
@@ -1006,19 +1005,19 @@ public class Screen extends javax.swing.JFrame {
     }//GEN-LAST:event__stopActionPerformed
 
     private void _op_minusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__op_minusActionPerformed
-        addOperation("-");
+        clickOperation("-");
     }//GEN-LAST:event__op_minusActionPerformed
 
     private void _op_podeljenoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__op_podeljenoActionPerformed
-        addOperation("/");
+        clickOperation("/");
     }//GEN-LAST:event__op_podeljenoActionPerformed
 
     private void _op_otv_zagradaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__op_otv_zagradaActionPerformed
-        addOpenPar();
+        clickOpenPar();
     }//GEN-LAST:event__op_otv_zagradaActionPerformed
 
     private void _op_zatv_zagradaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__op_zatv_zagradaActionPerformed
-        addClosedPar();
+        clickClosedPar();
     }//GEN-LAST:event__op_zatv_zagradaActionPerformed
 
     private void yesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_yesActionPerformed

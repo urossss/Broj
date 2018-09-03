@@ -4,8 +4,8 @@ import java.util.*;
 
 public class ExpressionBuilder {
 
-    private int target;
-    private ArrayList<Integer> numbers = new ArrayList<>();
+    private int target; // trazeni broj
+    private ArrayList<Integer> numbers = new ArrayList<>(); // ponudjeni brojevi
     private ArrayList<Expression> exp1 = new ArrayList<>();
     private ArrayList<Expression> exp2 = new ArrayList<>();
     private ArrayList<Expression> exp3 = new ArrayList<>();
@@ -24,21 +24,16 @@ public class ExpressionBuilder {
 
     }
 
-    public ExpressionBuilder(Integer target, ArrayList<Integer> numbers) {
-        this.target = target;
-        this.numbers = numbers;
-        this.total = 0;
-        this.findAll = true;
-        this.minDif = 999999;
-        this.found = false;
+    public ExpressionBuilder(int target, ArrayList<Integer> numbers) {
+        reset(target, numbers);
     }
 
     public void reset(int target, ArrayList<Integer> numbers) {
         this.target = target;
         this.numbers = numbers;
         this.total = 0;
-        this.minDif = 999999;
         this.findAll = false;
+        this.minDif = 999999;
         this.found = false;
         clearLists();
     }
@@ -61,57 +56,11 @@ public class ExpressionBuilder {
         sol.clear();
     }
 
-    public ArrayList<Expression> getSol() {
-        return this.sol;
-    }
-
-    public int getTotal() {
-        return this.total;
-    }
-
-    //sortira prva 4 ponudjena broja, da bi se kasnije izbegla neka dupla resenja
-    public void sortNumbers() {
-        int a = numbers.get(0);
-        int b = numbers.get(1);
-        int c = numbers.get(2);
-        int d = numbers.get(3);
-        int t;
-
-        if (a > b) {
-            t = a;
-            a = b;
-            b = t;
-        }
-        if (c > d) {
-            t = c;
-            c = d;
-            d = t;
-        }
-        if (a > c) {
-            t = a;
-            a = c;
-            c = t;
-        }
-        if (b > d) {
-            t = b;
-            b = d;
-            d = t;
-        }
-        if (b > c) {
-            t = b;
-            b = c;
-            c = t;
-        }
-        numbers.set(0, a);
-        numbers.set(1, b);
-        numbers.set(2, c);
-        numbers.set(3, d);
-        
-        Collections.reverse(numbers);   //samo da bi (mozda) bio lepsi rezultat: tipa 100+1 a ne 1+100;
-    }
-
     public void startBuild() {
-        sortNumbers();
+        //sortiramo brojeve da bi se izbegla neka dupla resenja
+        Collections.sort(numbers);
+        //obrcemo listu da bi (mozda) bili lepsi izrazi, tipa 100+1, a ne 1+100
+        Collections.reverse(numbers);
 
         build1();
 
@@ -134,6 +83,7 @@ public class ExpressionBuilder {
         removeDuplicates();
     }
 
+    // proverave da li se od data 2 izraza moze formirati novi, tj. da li su izrazi sastavljeni od razlicitih ponudjenih brojeva
     public boolean canMerge(Expression e1, Expression e2) {
         for (int n : e1.getIndexes()) {
             if (e2.getIndexes().contains(n)) {
@@ -176,7 +126,7 @@ public class ExpressionBuilder {
         return true;
     }
 
-    public boolean newSolution(Expression e) {      //vraca true ako je tacno resenje pronadjeno i ne treba traziti dalje
+    public boolean newSolution(Expression e) {      // vraca true ako je tacno resenje pronadjeno i ne treba traziti dalje
         if (e.getValue() == this.target) {
             if (this.minDif != 0) {
                 this.sol.clear();
@@ -191,7 +141,7 @@ public class ExpressionBuilder {
             this.sol.add(e);
         } else if (Math.abs(e.getValue() - this.target) < minDif) {
             e.setValidity();
-            if (e.getValidity()) {      //uzimamo samo cele brojeve za resenja
+            if (e.isValid()) {      // uzimamo samo cele brojeve za resenja
                 this.minDif = (int) (Math.abs(e.getValue() - this.target));
                 this.sol.clear();
                 this.sol.add(e);
@@ -203,6 +153,7 @@ public class ExpressionBuilder {
         return false;
     }
 
+    // formira izraze od 1 clana, tj. konvertuje sam broj u izraz
     public void build1() {
         for (int i = 0; i < numbers.size(); i++) {
             Expression e = new Expression(numbers.get(i), i);
@@ -214,6 +165,7 @@ public class ExpressionBuilder {
         }
     }
 
+    // formira sve odgovarajuce kombinacije izraza (jednog iz ex1 i jednog iz ex2) i smesta ih u exp
     public void buildUni(ArrayList<Expression> ex1, ArrayList<Expression> ex2, ArrayList<Expression> exp) { //num1>num2 uvek vazi, tako smo pozivali f-ju
         if (found && !this.findAll) {
             return;
@@ -224,15 +176,15 @@ public class ExpressionBuilder {
             for (int j = 0; j < ex2.size(); j++) {
                 Expression exx1 = ex1.get(i);
                 Expression exx2 = ex2.get(j);
-                if (!(canMerge(exx1, exx2))) {       //ne sme se jedan broj koristiti vise puta
+                if (!(canMerge(exx1, exx2))) {       // ne sme se jedan ponudjeni broj koristiti vise puta
                     continue;
                 }
-                if ((num1 == num2) && (i >= j)) {    //zbog komutativnosti
+                if ((num1 == num2) && (i >= j)) {    // zbog komutativnosti
                     continue;
                 }
 
                 //A+B
-                if ((exx1.getSign() != '-') && (exx2.getPriority() != 1)) {     //da se ne dodaje zbir ili razlika, vec ako se vec pravi neki zbir, da se dodaje samo jedan po jedan
+                if ((exx1.getSign() != '-') && (exx2.getPriority() != 1)) {     // da se ne dodaje zbir ili razlika, vec ako se vec pravi neki zbir, da se dodaje samo jedan po jedan
                     if (!asoc(exx1, exx2, '+')) {
                         Expression e1 = new Expression(exx1, exx2, '+');
                         exp.add(e1);
@@ -243,8 +195,8 @@ public class ExpressionBuilder {
                 }
 
                 //A*B
-                if (((exx1.getValue() != 1) && (exx2.getValue() != 1)) //izbegava se mnozenje jedinicom
-                        && (exx1.getSign() != '/') && (exx2.getPriority() != 2)) {
+                if (((exx1.getValue() != 1) && (exx2.getValue() != 1)) // izbegava se mnozenje jedinicom
+                        && (exx1.getSign() != '/') && (exx2.getPriority() != 2)) {  // slicno kao kod sabiranja...
                     if (!asoc(exx1, exx2, '*')) {
                         Expression e2 = new Expression(exx1, exx2, '*');
                         exp.add(e2);
@@ -299,5 +251,13 @@ public class ExpressionBuilder {
                 }
             }
         }
+    }
+    
+    public ArrayList<Expression> getSol() {
+        return this.sol;
+    }
+
+    public int getTotal() {
+        return this.total;
     }
 }
