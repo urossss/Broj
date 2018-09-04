@@ -31,10 +31,10 @@ public class ExpressionBuilder {
     public void reset(int target, ArrayList<Integer> numbers) {
         this.target = target;
         this.numbers = numbers;
-        this.total = 0;
-        this.findAll = false;
-        this.minDif = 999999;
-        this.found = false;
+        total = 0;
+        findAll = false;
+        minDif = 999999;
+        found = false;
         clearLists();
     }
 
@@ -43,7 +43,7 @@ public class ExpressionBuilder {
     }
 
     public void findAll() {
-        this.findAll = true;
+        findAll(true);
     }
 
     public void clearLists() {
@@ -56,12 +56,16 @@ public class ExpressionBuilder {
         sol.clear();
     }
 
+    /**
+     * Ovde pocinje trazenje resenja.
+     */
     public void startBuild() {
-        //sortiramo brojeve da bi se izbegla neka dupla resenja
+        // sortiramo brojeve da bi se izbegla neka dupla resenja
         Collections.sort(numbers);
-        //obrcemo listu da bi (mozda) bili lepsi izrazi, tipa 100+1, a ne 1+100
+        // obrcemo listu da bi (mozda) bili lepsi izrazi, tipa 100+1, a ne 1+100
         Collections.reverse(numbers);
 
+        // dalje se redom formiraju izrazi od 1, 2, 3, 4, 5 i 6 iskoriscenih brojeva
         build1();
 
         buildUni(exp1, exp1, exp2);
@@ -83,8 +87,15 @@ public class ExpressionBuilder {
         removeDuplicates();
     }
 
-    // proverave da li se od data 2 izraza moze formirati novi, tj. da li su izrazi sastavljeni od razlicitih ponudjenih brojeva
-    public boolean canMerge(Expression e1, Expression e2) {
+    /**
+     * Proverava da li se od data 2 izraza moze formirati novi, tj. da li su izrazi sastavljeni
+     * od razlicitih ponudjenih brojeva (svaki ponudjeni broj se moze isoristiti najvise jednom).
+     * 
+     * @param e1
+     * @param e2
+     * @return: true ako se od izraza e1 i e2 moze formirati novi izraz
+     */
+    private boolean canMerge(Expression e1, Expression e2) {
         for (int n : e1.getIndexes()) {
             if (e2.getIndexes().contains(n)) {
                 return false;
@@ -103,30 +114,50 @@ public class ExpressionBuilder {
         System.out.println("Total: " + this.sol.size());
     }
 
+    /**
+     * Za slucaj da su nam promakla neka identicna resenja. Slozenost je losa, ali bar radi.
+     * Poznati bag je da se ista resenja pojave ako postoje isti ponudjeni brojevi.
+     */
     public void removeDuplicates() {
         for (int i = 0; i < sol.size(); i++) {
-            for (int j = i+1; j < sol.size(); j++) {
+            for (int j = i + 1; j < sol.size(); j++) {
                 if (sol.get(j).getExpression().equals(sol.get(i).getExpression())) {
+                    System.out.println("removed...");
                     sol.remove(j);
                 }
             }
         }
     }
 
-    public boolean asoc(Expression left, Expression right, char znak) {
-        if ((left.getNum() == 1) && (right.getNum() == 1)) {
+    /**
+     * F-ja koju koristimo da bi se izbegla ista resenja (mozda cak razlicita naizgled,
+     * ali sustinski ista). Npr. a+b+c je za nas isto sto i a+c+b, pa se ovaj poslednji
+     * izraz ne bi ni formirao.
+     */
+    private boolean asoc(Expression left, Expression right, char znak) {
+        if ((left.getNum() == 1) && (right.getNum() == 1)) {    // nema asocijativnosti ako oba izraza imaju po 1 clan
             return false;
         }
-        if (left.getSign() != znak) {
+        if (left.getSign() != znak) {   // nema asocijativnosti ako se radi sa razlicitim operacijama
             return false;
         }
-        if (left.getRight().getIndexes().get(0) < right.getIndexes().get(0)) {
+        if (left.getRight().getIndexes().get(0) < right.getIndexes().get(0)) {  // pravi se npr. izraz (a+b)*c * d, ali se nece praviti izraz (a+b)*d * c
+            // bolje uporediti same brojeve a ne indexe!!!!!!!!
             return false;
         }
         return true;
     }
 
-    public boolean newSolution(Expression e) {      // vraca true ako je tacno resenje pronadjeno i ne treba traziti dalje
+    /**
+     * Proverava da li je dati izraz tacno resenje. Ako ne, onda da li je najblize
+     * trazenom broju ili podjednako blizu kao neko prethodno. Ako je nesto od prethodnog
+     * ispunjeno, izraz se dodaje u listu resenja. Po potrebi postojeca resenja se brisu
+     * i cuva se samo ovo (ukoliko je najbolje do sada).
+     * 
+     * @param e: izraz koji proveravamo da li je dobro resenje
+     * @return: true ako je tacno resenje pronadjeno i ne treba traziti dalje, u suprotnom false
+     */
+    private boolean newSolution(Expression e) {
         if (e.getValue() == this.target) {
             if (this.minDif != 0) {
                 this.sol.clear();
@@ -153,8 +184,10 @@ public class ExpressionBuilder {
         return false;
     }
 
-    // formira izraze od 1 clana, tj. konvertuje sam broj u izraz
-    public void build1() {
+    /**
+     * Formira izraze od jednog clana, tj. konvertuje same ponudjene brojeve u izraze.
+     */
+    private void build1() {
         for (int i = 0; i < numbers.size(); i++) {
             Expression e = new Expression(numbers.get(i), i);
             this.exp1.add(e);
@@ -165,8 +198,16 @@ public class ExpressionBuilder {
         }
     }
 
-    // formira sve odgovarajuce kombinacije izraza (jednog iz ex1 i jednog iz ex2) i smesta ih u exp
-    public void buildUni(ArrayList<Expression> ex1, ArrayList<Expression> ex2, ArrayList<Expression> exp) { //num1>num2 uvek vazi, tako smo pozivali f-ju
+    /**
+     * Formira sve odgovarajuce kombinacije (sve koje nisu iskljucene zbog komutativnosti,
+     * asocijativnosti, negativnosti, mnozenja ili deljenja jedinicom, deljenja nulom...)
+     * dva izraza (jednog iz ex1 i jednog iz ex2) i smesta ih u exp.
+     * 
+     * @param ex1
+     * @param ex2
+     * @param exp 
+     */
+    private void buildUni(ArrayList<Expression> ex1, ArrayList<Expression> ex2, ArrayList<Expression> exp) { //num1>num2 uvek vazi, tako smo pozivali f-ju
         if (found && !this.findAll) {
             return;
         }
@@ -252,7 +293,7 @@ public class ExpressionBuilder {
             }
         }
     }
-    
+
     public ArrayList<Expression> getSol() {
         return this.sol;
     }
