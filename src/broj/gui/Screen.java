@@ -1,34 +1,36 @@
 package broj.gui;
 
 import broj.expression.*;
+import broj.input.KeyManager;
 import java.awt.*;
 import java.util.*;
 import javax.swing.*;
 
 public class Screen extends javax.swing.JFrame {
 
-    private final int X = 50;           //broj milisekundi izmedju 2 broja pri zaustavljanju brojaca
+    private final int X = 50;           // broj milisekundi izmedju 2 broja pri zaustavljanju brojaca
     private Random rand = new Random();
+    private KeyManager keyManager = new KeyManager();
 
-    private boolean set;                //indikator za zaustavljanje brojaca
-    private boolean thread_run;         //flag za zaustavljanje brojaca kad se svi brojevi izaberu ili se ide reset
-    private boolean stop_all;           //true ako hocemo automatsko postavljanje brojeva - random
-    private boolean started;        //true ako su brojevi zaustavljeni, moze se poceti racunanje
-    //private boolean done;           //true ako je korisnik odigrao svoje (kliknuo je da se izracuna uneti izraz)
+    private boolean set;                // indikator za zaustavljanje brojaca
+    private boolean setNumbers;         // true ako korisnik zeli sam da unese trazeni i ponudjene brojeve
+    private boolean thread_run;         // flag za zaustavljanje brojaca kad se svi brojevi izaberu ili se ide reset
+    private boolean stop_all;           // true ako hocemo automatsko postavljanje brojeva - random
+    private boolean started;            // true ako su brojevi zaustavljeni, moze se poceti racunanje
     private boolean comp;
 
-    private Thread t;      //nit koja obavlja zaustavljanje brojeva
+    private Thread t = null;      // nit koja obavlja zaustavljanje brojeva
 
-    private int target;                                         //trazeni broj
-    private ArrayList<Integer> numbers = new ArrayList<>();     //ponudjeni brojevi
-    private ArrayList<JLabel> numbersLabs = new ArrayList<>();  //labele sa ponudjenim brojevima
-    private ArrayList<JLabel> disabledLabs = new ArrayList<>(); //labele sa iskoriscenim ponudjenim brojevima
-    private ArrayList<String> exp = new ArrayList<>();          //izraz koji korisnik unosi
-    private String expString;                                   //izraz koji korisnik unosi, u formi stringa, za ispis
+    private int target;                                         // trazeni broj
+    private ArrayList<Integer> numbers = new ArrayList<>();     // ponudjeni brojevi
+    private ArrayList<JLabel> numbersLabs = new ArrayList<>();  // labele sa ponudjenim brojevima
+    private ArrayList<JLabel> disabledLabs = new ArrayList<>(); // labele sa iskoriscenim ponudjenim brojevima
+    private ArrayList<String> exp = new ArrayList<>();          // izraz koji korisnik unosi
+    private String expString;                                   // izraz koji korisnik unosi, u formi stringa, za ispis
 
-    private ExpressionBuilder builder = new ExpressionBuilder();    //nalazi tacan broj
-    private ArrayList<Expression> sol = new ArrayList<>();          //lista resenja koje racunar nadje
-    private int total;                                              //ukupan broj izracunatih izraza
+    private ExpressionBuilder builder = new ExpressionBuilder();    // nalazi tacan broj
+    private ArrayList<Expression> sol = new ArrayList<>();          // lista resenja koje racunar nadje
+    private int total;                                              // ukupan broj izracunatih izraza
 
     /**
      * Creates new form Screen
@@ -40,29 +42,37 @@ public class Screen extends javax.swing.JFrame {
         setIconImage(im);
 
         this.setLocationRelativeTo(null);
+
+        this.setFocusable(true);
+        this.addKeyListener(keyManager);
         //
         addLabs();
-        _findAll.doClick();
-        _showStats.doClick();
+        //_findAll.doClick();
+        _findAll.setSelected(false);
+        //_showStats.doClick();
+        _showStats.setSelected(false);
+        _setNumbers.setSelected(false);
 
         restart();
     }
 
+    // Nova igra
     public void restart() {
-        //indikatori se resetuju
+        // indikatori se resetuju
         thread_run = true;
         set = false;
         stop_all = false;
         started = false;
         comp = false;
+        //setNumbers = false;
 
-        //prazne se liste
+        // prazne se liste
         numbers.clear();
         exp.clear();
         disabledLabs.clear();
         sol.clear();
 
-        //brisu se ispisi sa ekrana
+        // brisu se ispisi sa ekrana
         _sol_user.setText("");
         _res_user.setText("");
         _sol_comp.setText("");
@@ -83,29 +93,46 @@ public class Screen extends javax.swing.JFrame {
             _compCanCalc.doClick();
         }
 
-        //pokrecu se brojaci za zaustavljanje brojeva
+        // pokrecu se brojaci za zaustavljanje brojeva
+//        if (t != null) {
+//            System.out.println("zaustavljamo");
+//            t.interrupt();
+//            thread_run = false;
+//        }
         t = new Thread() {
             public void run() {
+                System.out.println("ispocetka");
                 initialize(this);
             }
         };
         t.start();
+        thread_run = true;
     }
 
+    // Postavljanje brojeva
     public void initialize(Thread t) {
-        //zaustavljanje jednog po jednog broja
+        // zaustavljanje jednog po jednog broja
         countdown(lab1, t, 0);
+        if (t.isInterrupted()) return;
         countdown(lab2, t, 0);
+        if (t.isInterrupted()) return;
         countdown(lab3, t, 0);
+        if (t.isInterrupted()) return;
         countdown(lab4, t, 1);
+        if (t.isInterrupted()) return;
         countdown(lab5, t, 1);
+        if (t.isInterrupted()) return;
         countdown(lab6, t, 1);
+        if (t.isInterrupted()) return;
         countdown(lab7, t, 1);
+        if (t.isInterrupted()) return;
         countdown(lab8, t, 10);
+        if (t.isInterrupted()) return;
         countdown(lab9, t, 25);
+        //if (t.isInterrupted()) return;
 
-        //ako je zaustavljanje uspesno (nije resetovano) formiraju se trazeni i ponudjeni brojevi
-        if (!t.isInterrupted()) {
+        // ako je zaustavljanje uspesno (nije resetovano) formiraju se trazeni i ponudjeni brojevi
+        if (!t.isInterrupted() || (setNumbers && !lab1.getText().equals(" "))) {
             target = Integer.parseInt(lab1.getText()) * 100
                     + Integer.parseInt(lab2.getText()) * 10
                     + Integer.parseInt(lab3.getText());
@@ -121,26 +148,82 @@ public class Screen extends javax.swing.JFrame {
         }
     }
 
+    /**
+     * Zaustavljanje jednog broja
+     *
+     * mode: 0 - trazeni broj (1 njegova cifra) 1 - 1, 2...9 10 - 10, 15 ili 20
+     * 25 - 25, 50, 75 ili 100
+     */
     public void countdown(JLabel lab, Thread t, int mode) {
-        int i;
-        if (!t.isInterrupted()) {
+        if (setNumbers) {   // ceka se da korisnik unese broj
+            lab.setText("_");
+            long now = System.currentTimeMillis();
+            int x, i;
             do {
-                if (mode == 0) {
-                    i = rand.nextInt(10);
-                } else if (mode == 1) {
-                    i = rand.nextInt(9) + 1;
-                } else if (mode == 10) {
-                    i = 5 * (rand.nextInt(3) + 2);
+                this.requestFocusInWindow();
+                now = System.currentTimeMillis();
+                if (now % 400 > 200) {
+                    lab.setText("_");
                 } else {
-                    i = 25 * (rand.nextInt(4) + 1);
+                    lab.setText(" ");
                 }
-                lab.setText("" + i);
-                try {
-                    t.sleep(X);
-                } catch (InterruptedException e) {
-                    t.interrupt();
+                x = -1;
+                if (mode == 0) {
+                    for (i = 0; i < 10; i++) {
+                        if (KeyManager.numberKeys[i]) {
+                            x = i;
+                            break;
+                        }
+                    }
+                } else if (mode == 1) {
+                    for (i = 1; i < 10; i++) {
+                        if (KeyManager.numberKeys[i]) {
+                            x = i;
+                            break;
+                        }
+                    }
+                } else if (mode == 10) {
+                    for (i = 2; i <= 4; i++) {
+                        if (KeyManager.numberKeys[i]) {
+                            x = i * 5;
+                            break;
+                        }
+                    }
+                } else {
+                    for (i = 1; i <= 4; i++) {
+                        if (KeyManager.numberKeys[i]) {
+                            x = i * 25;
+                            break;
+                        }
+                    }
                 }
-            } while (!set && thread_run && !t.isInterrupted());
+                if (x != -1) {
+                    set = true;
+                    lab.setText("" + x);
+                }
+            } while (!set);
+            keyManager.tick();
+        } else {    // ceka se da se klikne stop ili stop all
+            int i;
+            if (!t.isInterrupted()) {
+                do {
+                    if (mode == 0) {
+                        i = rand.nextInt(10);
+                    } else if (mode == 1) {
+                        i = rand.nextInt(9) + 1;
+                    } else if (mode == 10) {
+                        i = 5 * (rand.nextInt(3) + 2);
+                    } else {
+                        i = 25 * (rand.nextInt(4) + 1);
+                    }
+                    lab.setText("" + i);
+                    try {
+                        t.sleep(X);
+                    } catch (InterruptedException e) {
+                        t.interrupt();
+                    }
+                } while (!set && thread_run && !t.isInterrupted());
+            }
         }
 
         if (!stop_all) {
@@ -148,7 +231,7 @@ public class Screen extends javax.swing.JFrame {
         }
     }
 
-    //samo pravi listu sa labelama gde su ponudjeni brojevi
+    // Samo pravi listu sa labelama gde su ponudjeni brojevi
     public void addLabs() {
         numbersLabs.add(lab4);
         numbersLabs.add(lab5);
@@ -158,7 +241,7 @@ public class Screen extends javax.swing.JFrame {
         numbersLabs.add(lab9);
     }
 
-    //resetuje ponudjene brojeve
+    // Resetuje ponudjene brojeve
     public void enableLabs() {
         for (JLabel l : numbersLabs) {
             l.setText(" ");
@@ -166,7 +249,7 @@ public class Screen extends javax.swing.JFrame {
         }
     }
 
-    //proverava da li su vec iskorisceni svi ponudjeni brojevi
+    // Proverava da li su vec iskorisceni svi ponudjeni brojevi
     public boolean allNumbersUsed() {
         for (JLabel l : numbersLabs) {
             if (l.isEnabled()) {
@@ -176,17 +259,17 @@ public class Screen extends javax.swing.JFrame {
         return true;
     }
 
-    //proverava da li je string operacija
+    // Proverava da li je string operacija
     public boolean isOp(String s) {
         return s.equals("+") || s.equals("-") || s.equals("*") || s.equals("/");
     }
 
-    //proverava da li je string zagrada
+    // Proverava da li je string zagrada
     public boolean isParentheses(String s) {
         return s.equals("(") || s.equals(")");
     }
 
-    //formira string za ispis unetog izraza
+    // Formira string za ispis unetog izraza
     public void makeExp() {
         expString = "";
         for (String s : exp) {
@@ -194,7 +277,7 @@ public class Screen extends javax.swing.JFrame {
         }
     }
 
-    //kad se klikne ponudjeni broj
+    // Kad se klikne ponudjeni broj
     public boolean clickNumber(String num) {
         if (started) {
             if (exp.isEmpty() || isOp(exp.get(exp.size() - 1)) || exp.get(exp.size() - 1).equals("(")) {
@@ -207,7 +290,7 @@ public class Screen extends javax.swing.JFrame {
         return false;
     }
 
-    //kad se klikne operacija
+    // Kad se klikne operacija
     public void clickOperation(String op) {
         if (started) {
             if (!(exp.isEmpty() || allNumbersUsed() || isOp(exp.get(exp.size() - 1)) || exp.get(exp.size() - 1).equals("("))) {
@@ -218,7 +301,7 @@ public class Screen extends javax.swing.JFrame {
         }
     }
 
-    //kad se klikne otvorena zagrada
+    // Kad se klikne otvorena zagrada
     public void clickOpenPar() {
         if (started) {
             if (exp.isEmpty() || exp.get(exp.size() - 1).equals("(") || isOp(exp.get(exp.size() - 1))) {
@@ -229,7 +312,7 @@ public class Screen extends javax.swing.JFrame {
         }
     }
 
-    //kad se klikne zatvorena zagrada
+    // Kad se klikne zatvorena zagrada
     public void clickClosedPar() {
         if (started) {
             if (!(exp.isEmpty() || isOp(exp.get(exp.size() - 1)) || exp.get(exp.size() - 1).equals("("))) {
@@ -251,7 +334,7 @@ public class Screen extends javax.swing.JFrame {
         }
     }
 
-    //kad se klikne dugme za brisanje (kao backspace)
+    // Kad se klikne dugme za brisanje (kao backspace)
     public void erase() {
         if (!exp.isEmpty()) {
             String last = exp.get(exp.size() - 1);
@@ -267,7 +350,7 @@ public class Screen extends javax.swing.JFrame {
         }
     }
 
-    //proverava da li je uneti izraz validan za racunanje
+    // Proverava da li je uneti izraz validan za racunanje
     public boolean validExpression() {
         if (expString.isEmpty()) {
             return false;
@@ -288,7 +371,7 @@ public class Screen extends javax.swing.JFrame {
         return (otv == zatv);
     }
 
-    //racunanje izraza koji korisnik unese
+    // Racunanje izraza koji korisnik unese
     public void calculate() {
         double result = PostfixCalculator.evaluateExpression(InfixToPostfix.convert(_sol_user.getText()));
         String resString;
@@ -303,11 +386,11 @@ public class Screen extends javax.swing.JFrame {
         _res_user.setText(resString);
     }
 
-    //resenje kompjutera
+    // Resenje kompjutera
     public void solve() {
         builder.reset(target, numbers);
-        builder.findAll(_findAll.isSelected());  //da li nalazi sva resenja ili samo jedno
-        long startTime = System.nanoTime();     //za racunanje za koliko je kompjuter nasao resenje
+        builder.findAll(_findAll.isSelected());  // da li nalazi sva resenja ili samo jedno
+        long startTime = System.nanoTime();     // za racunanje vremena za koje je kompjuter nasao resenje
         builder.startBuild();
         long endTime = System.nanoTime();
         total = builder.getTotal();
@@ -320,7 +403,7 @@ public class Screen extends javax.swing.JFrame {
         }
     }
 
-    //ispis (jednog ili svih) resenja u odgovarajuca polja
+    // Ispis (jednog ili svih) resenja u odgovarajuca polja
     public void writeSol() {
         if (_findAll.isSelected()) {
             for (Expression e : sol) {
@@ -384,6 +467,7 @@ public class Screen extends javax.swing.JFrame {
         _exit = new javax.swing.JMenuItem();
         _opcije = new javax.swing.JMenu();
         _findAll = new javax.swing.JCheckBoxMenuItem();
+        _setNumbers = new javax.swing.JCheckBoxMenuItem();
         _showStats = new javax.swing.JCheckBoxMenuItem();
         _compCanCalc = new javax.swing.JCheckBoxMenuItem();
 
@@ -894,6 +978,16 @@ public class Screen extends javax.swing.JFrame {
         });
         _opcije.add(_findAll);
 
+        _setNumbers.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        _setNumbers.setSelected(true);
+        _setNumbers.setText("Postavi broj");
+        _setNumbers.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                _setNumbersActionPerformed(evt);
+            }
+        });
+        _opcije.add(_setNumbers);
+
         _showStats.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         _showStats.setSelected(true);
         _showStats.setText("Prikazi vreme racunanja");
@@ -1001,7 +1095,9 @@ public class Screen extends javax.swing.JFrame {
     }//GEN-LAST:event_lab7MouseClicked
 
     private void _stopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__stopActionPerformed
-        set = true;
+        if (!setNumbers) {  // ako je podeseno da se rucno namesta broj, kliktanje na stop ne radi nista
+            set = true;
+        }
     }//GEN-LAST:event__stopActionPerformed
 
     private void _op_minusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__op_minusActionPerformed
@@ -1044,16 +1140,18 @@ public class Screen extends javax.swing.JFrame {
     }//GEN-LAST:event_noActionPerformed
 
     private void _autoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__autoActionPerformed
+        if (setNumbers) {
+            restart();
+            //restart = true;
+            _setNumbers.doClick();
+            //setNumbers = false;
+        }
         stop_all = true;
         set = true;
     }//GEN-LAST:event__autoActionPerformed
 
     private void _showStatsStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event__showStatsStateChanged
-        if (_showStats.isSelected()) {
-            _stats.setVisible(true);
-        } else {
-            _stats.setVisible(false);
-        }
+        _stats.setVisible(_showStats.isSelected());
     }//GEN-LAST:event__showStatsStateChanged
 
     private void _findAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__findAllActionPerformed
@@ -1106,6 +1204,15 @@ public class Screen extends javax.swing.JFrame {
             comp = false;
         }
     }//GEN-LAST:event__compCanCalcActionPerformed
+
+    private void _setNumbersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__setNumbersActionPerformed
+        setNumbers = _setNumbers.isSelected();
+        //if (setNumbers) {
+        t.interrupt();
+        restart();
+        //}
+        
+    }//GEN-LAST:event__setNumbersActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1166,6 +1273,7 @@ public class Screen extends javax.swing.JFrame {
     private javax.swing.JLabel _res_comp;
     private javax.swing.JLabel _res_user;
     private javax.swing.JButton _restart;
+    private javax.swing.JCheckBoxMenuItem _setNumbers;
     private javax.swing.JCheckBoxMenuItem _showStats;
     private javax.swing.JTextField _sol_comp;
     private java.awt.TextArea _sol_comp_area;
