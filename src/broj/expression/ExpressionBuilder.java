@@ -12,14 +12,14 @@ public class ExpressionBuilder {
     private ArrayList<Expression> exp4 = new ArrayList<>();
     private ArrayList<Expression> exp5 = new ArrayList<>();
     private ArrayList<Expression> exp6 = new ArrayList<>();
-    private int total;                                      //ukupan broj izraza u exp1, exp2... exp6
-    private ArrayList<Expression> sol = new ArrayList<>();  //lista svih resenja - tacnih ako postoje ili pribliznih ako nema tacnih
-    //private ArrayList<String> solStr = new ArrayList<>();   //lista svih resenja, samo stringovi za ispis   //PROBATI OVO!!!
-    private boolean findAll;    //true ako je potrebno naci sva resenja
-    private boolean found;      //true ako je neko resenje vec pronadjeno
+    private int total;                                      // ukupan broj izraza u exp1, exp2... exp6
+    private ArrayList<Expression> sol = new ArrayList<>();  // lista svih resenja - tacnih ako postoje ili pribliznih ako nema tacnih
+    //private ArrayList<String> solStr = new ArrayList<>();   // lista svih resenja, samo stringovi za ispis   //PROBATI OVO!!!
+    private boolean findAll;    // true ako je potrebno naci sva resenja
+    private boolean found;      // true ako je neko resenje vec pronadjeno
     private int minDif;
 
-    //Constructors
+    // Constructors
     public ExpressionBuilder() {
 
     }
@@ -88,9 +88,10 @@ public class ExpressionBuilder {
     }
 
     /**
-     * Proverava da li se od data 2 izraza moze formirati novi, tj. da li su izrazi sastavljeni
-     * od razlicitih ponudjenih brojeva (svaki ponudjeni broj se moze isoristiti najvise jednom).
-     * 
+     * Proverava da li se od data 2 izraza moze formirati novi, tj. da li su
+     * izrazi sastavljeni od razlicitih ponudjenih brojeva (svaki ponudjeni broj
+     * se moze isoristiti najvise jednom).
+     *
      * @param e1
      * @param e2
      * @return: true ako se od izraza e1 i e2 moze formirati novi izraz
@@ -108,31 +109,30 @@ public class ExpressionBuilder {
         System.out.println("----------------------------------");
         System.out.println("Resenja:");
         for (Expression e : sol) {
-            e.printExpression();
-            //e.printParents();
+            System.out.println(e);
         }
         System.out.println("Total: " + this.sol.size());
     }
 
     /**
-     * Za slucaj da su nam promakla neka identicna resenja. Slozenost je losa, ali bar radi.
-     * Poznati bag je da se ista resenja pojave ako postoje isti ponudjeni brojevi.
+     * Za slucaj da su nam promakla neka identicna resenja (desava se npr. kad postoje
+     * isti ponudjeni brojevi). Slozenost je losa, ali bar radi.
      */
     public void removeDuplicates() {
         for (int i = 0; i < sol.size(); i++) {
             for (int j = i + 1; j < sol.size(); j++) {
                 if (sol.get(j).getExpression().equals(sol.get(i).getExpression())) {
-                    System.out.println("removed...");
                     sol.remove(j);
+                    j--;
                 }
             }
         }
     }
 
     /**
-     * F-ja koju koristimo da bi se izbegla ista resenja (mozda cak razlicita naizgled,
-     * ali sustinski ista). Npr. a+b+c je za nas isto sto i a+c+b, pa se ovaj poslednji
-     * izraz ne bi ni formirao.
+     * F-ja koju koristimo da bi se izbegla ista resenja (mozda cak razlicita
+     * naizgled, ali sustinski ista). Npr. a+b+c je za nas isto sto i a+c+b, pa
+     * se ovaj poslednji izraz ne bi ni formirao.
      */
     private boolean asoc(Expression left, Expression right, char znak) {
         if ((left.getNum() == 1) && (right.getNum() == 1)) {    // nema asocijativnosti ako oba izraza imaju po 1 clan
@@ -143,19 +143,22 @@ public class ExpressionBuilder {
         }
         if (left.getRight().getIndexes().get(0) < right.getIndexes().get(0)) {  // pravi se npr. izraz (a+b)*c * d, ali se nece praviti izraz (a+b)*d * c
             // bolje uporediti same brojeve a ne indexe!!!!!!!!
+            //if (left.getRight().getLeftValue() >= right.getLeftValue()) { // ??? >, >=...
             return false;
         }
         return true;
     }
 
     /**
-     * Proverava da li je dati izraz tacno resenje. Ako ne, onda da li je najblize
-     * trazenom broju ili podjednako blizu kao neko prethodno. Ako je nesto od prethodnog
-     * ispunjeno, izraz se dodaje u listu resenja. Po potrebi postojeca resenja se brisu
-     * i cuva se samo ovo (ukoliko je najbolje do sada).
-     * 
+     * Proverava da li je dati izraz tacno resenje. Ako ne, onda da li je
+     * najblize trazenom broju ili podjednako blizu kao neko prethodno. Ako je
+     * nesto od prethodnog ispunjeno, izraz se dodaje u listu resenja. Po
+     * potrebi postojeca resenja se brisu i cuva se samo ovo (ukoliko je
+     * najbolje do sada).
+     *
      * @param e: izraz koji proveravamo da li je dobro resenje
-     * @return: true ako je tacno resenje pronadjeno i ne treba traziti dalje, u suprotnom false
+     * @return: true ako je tacno resenje pronadjeno i ne treba traziti dalje, u
+     * suprotnom false
      */
     private boolean newSolution(Expression e) {
         if (e.getValue() == this.target) {
@@ -185,7 +188,8 @@ public class ExpressionBuilder {
     }
 
     /**
-     * Formira izraze od jednog clana, tj. konvertuje same ponudjene brojeve u izraze.
+     * Formira izraze od jednog clana, tj. konvertuje same ponudjene brojeve u
+     * izraze.
      */
     private void build1() {
         for (int i = 0; i < numbers.size(); i++) {
@@ -199,13 +203,14 @@ public class ExpressionBuilder {
     }
 
     /**
-     * Formira sve odgovarajuce kombinacije (sve koje nisu iskljucene zbog komutativnosti,
-     * asocijativnosti, negativnosti, mnozenja ili deljenja jedinicom, deljenja nulom...)
-     * dva izraza (jednog iz ex1 i jednog iz ex2) i smesta ih u exp.
-     * 
+     * Formira sve odgovarajuce kombinacije (sve koje nisu iskljucene zbog
+     * komutativnosti, asocijativnosti, negativnosti, mnozenja ili deljenja
+     * jedinicom, deljenja nulom...) dva izraza (jednog iz ex1 i jednog iz ex2)
+     * i smesta ih u exp.
+     *
      * @param ex1
      * @param ex2
-     * @param exp 
+     * @param exp
      */
     private void buildUni(ArrayList<Expression> ex1, ArrayList<Expression> ex2, ArrayList<Expression> exp) { //num1>num2 uvek vazi, tako smo pozivali f-ju
         if (found && !this.findAll) {
