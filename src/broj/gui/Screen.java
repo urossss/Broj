@@ -94,6 +94,7 @@ public class Screen extends javax.swing.JFrame {
             thread_run = false;
         }
         t = new Thread() {
+            @Override
             public void run() {
                 thread_run = true;
                 initialize(this);
@@ -161,11 +162,13 @@ public class Screen extends javax.swing.JFrame {
     /**
      * Zaustavljanje jednog broja
      *
-     * mode: 
-     *  0 - trazeni broj (1 njegova cifra) 
-     *  1 - 1, 2...9 
-     *  10 - 10, 15 ili 20
-     *  25 - 25, 50, 75 ili 100
+     * @param lab: labela broja koji treba zaustaviti/postaviti
+     * @param t: nit koja obavlja zaustavljanje brojaca
+     * @param mode:
+     *   - 0 - trazeni broj (1 njegova cifra) 
+     *   - 1 - 1, 2...9 
+     *   - 10 - 10, 15 ili 20
+     *   - 25 - 25, 50, 75 ili 100
      */
     public void countdown(JLabel lab, Thread t, int mode) {
         if (setNumbers) {   // ceka se da korisnik unese broj
@@ -180,34 +183,39 @@ public class Screen extends javax.swing.JFrame {
                     lab.setText(" ");
                 }
                 x = -1;
-                if (mode == 0) {
-                    for (i = 0; i < 10; i++) {
-                        if (KeyManager.numberKeys[i]) {
-                            x = i;
-                            break;
+                switch (mode) {
+                    case 0:
+                        for (i = 0; i < 10; i++) {
+                            if (KeyManager.numberKeys[i]) {
+                                x = i;
+                                break;
+                            }
                         }
-                    }
-                } else if (mode == 1) {
-                    for (i = 1; i < 10; i++) {
-                        if (KeyManager.numberKeys[i]) {
-                            x = i;
-                            break;
+                        break;
+                    case 1:
+                        for (i = 1; i < 10; i++) {
+                            if (KeyManager.numberKeys[i]) {
+                                x = i;
+                                break;
+                            }
                         }
-                    }
-                } else if (mode == 10) {
-                    for (i = 2; i <= 4; i++) {
-                        if (KeyManager.numberKeys[i]) {
-                            x = i * 5;
-                            break;
+                        break;
+                    case 10:
+                        for (i = 2; i <= 4; i++) {
+                            if (KeyManager.numberKeys[i]) {
+                                x = i * 5;
+                                break;
+                            }
                         }
-                    }
-                } else {
-                    for (i = 1; i <= 4; i++) {
-                        if (KeyManager.numberKeys[i]) {
-                            x = i * 25;
-                            break;
+                        break;
+                    default:
+                        for (i = 1; i <= 4; i++) {
+                            if (KeyManager.numberKeys[i]) {
+                                x = i * 25;
+                                break;
+                            }
                         }
-                    }
+                        break;
                 }
                 if (x != -1) {
                     set = true;
@@ -222,14 +230,19 @@ public class Screen extends javax.swing.JFrame {
             // ako iz nekog razloga broj nije postavljen od strane korisnika
             if (lab.getText().equals(" ") || lab.getText().equals("_")) {   
                 if (stop_all) {     // ako se klikne automatsko postavljanje preosalih brojeva
-                    if (mode == 0) {
-                    i = rand.nextInt(10);
-                    } else if (mode == 1) {
-                        i = rand.nextInt(9) + 1;
-                    } else if (mode == 10) {
-                        i = 5 * (rand.nextInt(3) + 2);
-                    } else {
-                        i = 25 * (rand.nextInt(4) + 1);
+                    switch (mode) {
+                        case 0:
+                            i = rand.nextInt(10);
+                            break;
+                        case 1:
+                            i = rand.nextInt(9) + 1;
+                            break;
+                        case 10:
+                            i = 5 * (rand.nextInt(3) + 2);
+                            break;
+                        default:
+                            i = 25 * (rand.nextInt(4) + 1);
+                            break;
                     }
                     lab.setText("" + i);
                 } else {            // ako je npr. kliknuto restart
@@ -241,14 +254,19 @@ public class Screen extends javax.swing.JFrame {
             int i;
             if (!t.isInterrupted()) {
                 do {
-                    if (mode == 0) {
-                        i = rand.nextInt(10);
-                    } else if (mode == 1) {
-                        i = rand.nextInt(9) + 1;
-                    } else if (mode == 10) {
-                        i = 5 * (rand.nextInt(3) + 2);
-                    } else {
-                        i = 25 * (rand.nextInt(4) + 1);
+                    switch (mode) {
+                        case 0:
+                            i = rand.nextInt(10);
+                            break;
+                        case 1:
+                            i = rand.nextInt(9) + 1;
+                            break;
+                        case 10:
+                            i = 5 * (rand.nextInt(3) + 2);
+                            break;
+                        default:
+                            i = 25 * (rand.nextInt(4) + 1);
+                            break;
                     }
                     lab.setText("" + i);
                     try {
@@ -305,7 +323,7 @@ public class Screen extends javax.swing.JFrame {
 
     // Formira string za ispis unetog izraza
     public void makeExp() {
-        expString = "";
+        expString = " ";    // da bude lepsi ispis na labeli
         for (String s : exp) {
             expString += s;
         }
@@ -407,7 +425,7 @@ public class Screen extends javax.swing.JFrame {
 
     // Racunanje izraza koji korisnik unese
     public void calculate() {
-        double result = PostfixCalculator.evaluateExpression(InfixToPostfix.convert(_sol_user.getText()));
+        double result = PostfixCalculator.evaluateExpression(InfixToPostfix.convert(_sol_user.getText().trim()));
         String resString;
         if (Math.floor(result) == Math.ceil(result)) {
             resString = Math.round(result) + "";
@@ -441,7 +459,7 @@ public class Screen extends javax.swing.JFrame {
     public void writeSol() {
         if (_findAll.isSelected()) {
             for (Expression e : sol) {
-                String newLine = Math.round(e.getValue()) + " = " + e.getExpression() + "\n";
+                String newLine = " " + Math.round(e.getValue()) + " = " + e.getExpression() + "\n";
                 _sol_comp_area.setText(_sol_comp_area.getText() + newLine);
             }
         } else {
