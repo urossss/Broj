@@ -52,7 +52,7 @@
                   <Font name="Segoe UI" size="18" style="0"/>
                 </Property>
                 <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" value="Nadji sva resenja"/>
+                <Property name="text" type="java.lang.String" value="Na&#x111;i sva re&#x161;enja"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="_findAllActionPerformed"/>
@@ -64,7 +64,7 @@
                   <Font name="Segoe UI" size="18" style="0"/>
                 </Property>
                 <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" value="Postavi broj"/>
+                <Property name="text" type="java.lang.String" value="Omogu&#x107;i postavljanje broja"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="_setNumbersActionPerformed"/>
@@ -76,7 +76,8 @@
                   <Font name="Segoe UI" size="18" style="0"/>
                 </Property>
                 <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" value="Prikazi vreme racunanja"/>
+                <Property name="text" type="java.lang.String" value="Prika&#x17e;i vreme ra&#x10d;unanja"/>
+                <Property name="actionCommand" type="java.lang.String" value="Prika&#x17e;i vreme ra&#x10d;unanja"/>
               </Properties>
               <Events>
                 <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="_showStatsStateChanged"/>
@@ -88,7 +89,7 @@
                   <Font name="Segoe UI" size="18" style="0"/>
                 </Property>
                 <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" value="Omoguci racun kompjutera"/>
+                <Property name="text" type="java.lang.String" value="Omogu&#x107;i ra&#x10d;un kompjutera"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="_compCanCalcActionPerformed"/>

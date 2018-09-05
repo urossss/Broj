@@ -13,7 +13,7 @@ public class Screen extends javax.swing.JFrame {
     private KeyManager keyManager = new KeyManager();
 
     private boolean set;                // indikator za zaustavljanje brojaca
-    private boolean setNumbers;         // true ako korisnik zeli sam da unese trazeni i ponudjene brojeve
+    private boolean setNumbers = false; // true ako korisnik zeli sam da unese trazeni i ponudjene brojeve
     private boolean thread_run;         // flag za zaustavljanje brojaca kad se svi brojevi izaberu ili se ide reset
     private boolean stop_all;           // true ako hocemo automatsko postavljanje brojeva - random
     private boolean started;            // true ako su brojevi zaustavljeni, moze se poceti racunanje
@@ -38,18 +38,16 @@ public class Screen extends javax.swing.JFrame {
     public Screen() {
         initComponents();
 
-        Image im = Toolkit.getDefaultToolkit().getImage(getClass().getResource("icons/icon_numbers2.png"));
-        setIconImage(im);
+        setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("icons/icon_numbers2.png")));
 
-        this.setLocationRelativeTo(null);
+        setLocationRelativeTo(null);
 
-        this.setFocusable(true);
-        this.addKeyListener(keyManager);
+        setFocusable(true);
+        addKeyListener(keyManager);
         //
         addLabs();
-        //_findAll.doClick();
+        
         _findAll.setSelected(false);
-        //_showStats.doClick();
         _showStats.setSelected(false);
         _setNumbers.setSelected(false);
 
@@ -59,12 +57,9 @@ public class Screen extends javax.swing.JFrame {
     // Nova igra
     public void restart() {
         // indikatori se resetuju
-        thread_run = true;
-        set = false;
         stop_all = false;
         started = false;
         comp = false;
-        //setNumbers = false;
 
         // prazne se liste
         numbers.clear();
@@ -94,42 +89,57 @@ public class Screen extends javax.swing.JFrame {
         }
 
         // pokrecu se brojaci za zaustavljanje brojeva
-//        if (t != null) {
-//            System.out.println("zaustavljamo");
-//            t.interrupt();
-//            thread_run = false;
-//        }
+        if (t != null) {
+            t.interrupt();
+            thread_run = false;
+        }
         t = new Thread() {
             public void run() {
-                System.out.println("ispocetka");
+                thread_run = true;
                 initialize(this);
             }
         };
         t.start();
-        thread_run = true;
     }
 
     // Postavljanje brojeva
     public void initialize(Thread t) {
+        set = false;
+        
         // zaustavljanje jednog po jednog broja
         countdown(lab1, t, 0);
-        if (t.isInterrupted()) return;
+        if (t.isInterrupted()) {
+            return;
+        }
         countdown(lab2, t, 0);
-        if (t.isInterrupted()) return;
+        if (t.isInterrupted()) {
+            return;
+        }
         countdown(lab3, t, 0);
-        if (t.isInterrupted()) return;
+        if (t.isInterrupted()) {
+            return;
+        }
         countdown(lab4, t, 1);
-        if (t.isInterrupted()) return;
+        if (t.isInterrupted()) {
+            return;
+        }
         countdown(lab5, t, 1);
-        if (t.isInterrupted()) return;
+        if (t.isInterrupted()) {
+            return;
+        }
         countdown(lab6, t, 1);
-        if (t.isInterrupted()) return;
+        if (t.isInterrupted()) {
+            return;
+        }
         countdown(lab7, t, 1);
-        if (t.isInterrupted()) return;
+        if (t.isInterrupted()) {
+            return;
+        }
         countdown(lab8, t, 10);
-        if (t.isInterrupted()) return;
+        if (t.isInterrupted()) {
+            return;
+        }
         countdown(lab9, t, 25);
-        //if (t.isInterrupted()) return;
 
         // ako je zaustavljanje uspesno (nije resetovano) formiraju se trazeni i ponudjeni brojevi
         if (!t.isInterrupted() || (setNumbers && !lab1.getText().equals(" "))) {
@@ -151,13 +161,15 @@ public class Screen extends javax.swing.JFrame {
     /**
      * Zaustavljanje jednog broja
      *
-     * mode: 0 - trazeni broj (1 njegova cifra) 1 - 1, 2...9 10 - 10, 15 ili 20
-     * 25 - 25, 50, 75 ili 100
+     * mode: 
+     *  0 - trazeni broj (1 njegova cifra) 
+     *  1 - 1, 2...9 
+     *  10 - 10, 15 ili 20
+     *  25 - 25, 50, 75 ili 100
      */
     public void countdown(JLabel lab, Thread t, int mode) {
         if (setNumbers) {   // ceka se da korisnik unese broj
-            lab.setText("_");
-            long now = System.currentTimeMillis();
+            long now;
             int x, i;
             do {
                 this.requestFocusInWindow();
@@ -201,7 +213,29 @@ public class Screen extends javax.swing.JFrame {
                     set = true;
                     lab.setText("" + x);
                 }
-            } while (!set);
+                /**
+                 * !set - dok se ne klikne neki broj
+                 * setNumbers - ako se prebaci na zaustavljanje preko stop dugmeta, treba nam restart pa moramo izaci iz ove metode
+                 */
+            } while (!set && setNumbers);   
+            
+            // ako iz nekog razloga broj nije postavljen od strane korisnika
+            if (lab.getText().equals(" ") || lab.getText().equals("_")) {   
+                if (stop_all) {     // ako se klikne automatsko postavljanje preosalih brojeva
+                    if (mode == 0) {
+                    i = rand.nextInt(10);
+                    } else if (mode == 1) {
+                        i = rand.nextInt(9) + 1;
+                    } else if (mode == 10) {
+                        i = 5 * (rand.nextInt(3) + 2);
+                    } else {
+                        i = 25 * (rand.nextInt(4) + 1);
+                    }
+                    lab.setText("" + i);
+                } else {            // ako je npr. kliknuto restart
+                    lab.setText("");
+                }
+            }
             keyManager.tick();
         } else {    // ceka se da se klikne stop ili stop all
             int i;
@@ -241,7 +275,7 @@ public class Screen extends javax.swing.JFrame {
         numbersLabs.add(lab9);
     }
 
-    // Resetuje ponudjene brojeve
+    // Resetuje labele sa ponudjenim brojevima
     public void enableLabs() {
         for (JLabel l : numbersLabs) {
             l.setText(" ");
@@ -970,7 +1004,7 @@ public class Screen extends javax.swing.JFrame {
 
         _findAll.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         _findAll.setSelected(true);
-        _findAll.setText("Nadji sva resenja");
+        _findAll.setText("Nađi sva rešenja");
         _findAll.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 _findAllActionPerformed(evt);
@@ -980,7 +1014,7 @@ public class Screen extends javax.swing.JFrame {
 
         _setNumbers.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         _setNumbers.setSelected(true);
-        _setNumbers.setText("Postavi broj");
+        _setNumbers.setText("Omogući postavljanje broja");
         _setNumbers.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 _setNumbersActionPerformed(evt);
@@ -990,7 +1024,8 @@ public class Screen extends javax.swing.JFrame {
 
         _showStats.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         _showStats.setSelected(true);
-        _showStats.setText("Prikazi vreme racunanja");
+        _showStats.setText("Prikaži vreme računanja");
+        _showStats.setActionCommand("Prikaži vreme računanja");
         _showStats.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 _showStatsStateChanged(evt);
@@ -1000,7 +1035,7 @@ public class Screen extends javax.swing.JFrame {
 
         _compCanCalc.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         _compCanCalc.setSelected(true);
-        _compCanCalc.setText("Omoguci racun kompjutera");
+        _compCanCalc.setText("Omogući račun kompjutera");
         _compCanCalc.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 _compCanCalcActionPerformed(evt);
@@ -1035,8 +1070,12 @@ public class Screen extends javax.swing.JFrame {
     }//GEN-LAST:event__op_plusActionPerformed
 
     private void _restartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__restartActionPerformed
+        set = true; // zaustavlja se countdown
+        
+        // bitno je kad se rucno postavljaju brojevi!
         thread_run = false;
         t.interrupt();
+        
         restart();
     }//GEN-LAST:event__restartActionPerformed
 
@@ -1140,12 +1179,6 @@ public class Screen extends javax.swing.JFrame {
     }//GEN-LAST:event_noActionPerformed
 
     private void _autoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__autoActionPerformed
-        if (setNumbers) {
-            restart();
-            //restart = true;
-            _setNumbers.doClick();
-            //setNumbers = false;
-        }
         stop_all = true;
         set = true;
     }//GEN-LAST:event__autoActionPerformed
@@ -1188,9 +1221,11 @@ public class Screen extends javax.swing.JFrame {
     }//GEN-LAST:event__findAllActionPerformed
 
     private void _newGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__newGameActionPerformed
-        thread_run = false;
-        t.interrupt();
-        restart();
+//        set = true;
+//        thread_run = false;
+//        t.interrupt();
+//        restart();
+          _restartActionPerformed(evt);
     }//GEN-LAST:event__newGameActionPerformed
 
     private void _exitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__exitActionPerformed
@@ -1198,20 +1233,16 @@ public class Screen extends javax.swing.JFrame {
     }//GEN-LAST:event__exitActionPerformed
 
     private void _compCanCalcActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__compCanCalcActionPerformed
-        if (_compCanCalc.isSelected()) {
-            comp = true;
-        } else {
-            comp = false;
-        }
+        comp = _compCanCalc.isSelected();
     }//GEN-LAST:event__compCanCalcActionPerformed
 
     private void _setNumbersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__setNumbersActionPerformed
         setNumbers = _setNumbers.isSelected();
-        //if (setNumbers) {
-        t.interrupt();
-        restart();
-        //}
         
+        thread_run = false;
+        t.interrupt();
+        
+        restart();
     }//GEN-LAST:event__setNumbersActionPerformed
 
     /**
@@ -1243,6 +1274,7 @@ public class Screen extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 new Screen().setVisible(true);
             }
