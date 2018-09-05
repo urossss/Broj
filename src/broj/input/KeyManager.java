@@ -30,7 +30,6 @@ public class KeyManager implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        System.out.println("click");
         keys[e.getKeyCode()] = true;
         tick();
     }
