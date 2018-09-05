@@ -4,21 +4,22 @@ import java.util.*;
 
 public final class Expression {
 
-    private String expression;  //izraz u formi stringa
-    private Double value;       //brojna vrednost izraza
-    private int num;        //broj clanova izraza
-    private int priority;   //prioritet operacija: 0 ako je samo jedan clan, 1 ako ima + ili -, 2 ako je samo * ili /
-    private Boolean valid;      //true ako je value ceo broj, u suprotnom false
-    private ArrayList<Integer> indexes = new ArrayList<>(); //indeksi ponudjenih brojeva koji su iskorisceni u ovom izrazu
+    private String expression;  // izraz u formi stringa
+    private Double value;       // brojna vrednost izraza
+    private int num;        // broj clanova izraza
+    private int priority;   // prioritet operacija: 0 ako je samo jedan clan, 1 ako ima + ili -, 2 ako je samo * ili /
+    private Boolean valid;      // true ako je value ceo broj, u suprotnom false
+    private ArrayList<Integer> indexes = new ArrayList<>(); // indeksi ponudjenih brojeva koji su iskorisceni u ovom izrazu
     private Expression left;
     private Expression right;
     private char sign;
 
+    // Izraz od 2 clana i operacije izmedju njih
     public Expression(Expression exp1, Expression exp2, char op) {
         this.left = exp1;
         this.right = exp2;
         this.sign = op;
-        
+
         //formExpressionString();
         this.expression = "";   // radi efikasnosti cemo izraz u formi stringa formirati tek kada nam zaista zatreba
 
@@ -30,6 +31,7 @@ public final class Expression {
         setIndexes(exp1, exp2);
     }
 
+    // Izraz od jednog clana
     public Expression(Integer n, int i) {
         this.expression = n.toString();
         this.value = (double) n;
@@ -37,10 +39,9 @@ public final class Expression {
         this.num = 1;
         this.indexes.add(i);
         this.sign = 0;
-
-        //setValidity();
     }
-    
+
+    // Izracunava vrednost izraza
     private void formValue() {
         switch (sign) {
             case '+':
@@ -64,6 +65,7 @@ public final class Expression {
         }
     }
 
+    // Formira stringovsku reprezentaciju ovog izraza
     private void formExpressionString() {
         if (this.sign == 0) {
             return;
@@ -113,8 +115,26 @@ public final class Expression {
     }
 
     public String getExpression() {
-        formExpressionString();
+        if (this.expression.equals("")) {
+            formExpressionString();
+        }
         return this.expression;
+    }
+    
+    // vraca vrednost najlevljeg broja u izrazu
+    public double getLeftValue() {
+        if (left == null) {
+            return value;
+        }
+        return left.getLeftValue();
+    }
+    
+    // vraca vrednost najdesnijeg broja u izrazu
+    public double getRightValue() {
+        if (right == null) {
+            return value;
+        }
+        return right.getRightValue();
     }
 
     public double getValue() {
@@ -140,18 +160,13 @@ public final class Expression {
     public char getSign() {
         return this.sign;
     }
-    
+
     public Expression getLeft() {
         return this.left;
     }
-    
+
     public Expression getRight() {
         return this.right;
-    }
-    
-    public void printExpression() {
-        formExpressionString();
-        System.out.println(this);
     }
 
     public void setValidity() {
@@ -182,17 +197,13 @@ public final class Expression {
 
     @Override
     public String toString() {
-        String s = this.expression + " = " + this.value.toString();
-        //if (this.valid == true) {
-        //    s += "T ";
-        //}
+        String s = getExpression() + " = " + this.value.toString();
         return s;
     }
-    
-    //proveriti ovo malo i dodati override za hashcode() ako zatreba
+
+    //proveriti ovo malo i dodati override za hashcode()
     /*@Override
     public boolean equals(Object o) {
         return this.expression.equals(((Expression) o).getExpression());
     }*/
-
 }
