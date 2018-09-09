@@ -115,8 +115,8 @@ public class ExpressionBuilder {
     }
 
     /**
-     * Za slucaj da su nam promakla neka identicna resenja (desava se npr. kad postoje
-     * isti ponudjeni brojevi). Slozenost je losa, ali bar radi.
+     * Za slucaj da su nam promakla neka identicna resenja (desava se npr. kad
+     * postoje isti ponudjeni brojevi). Slozenost je losa, ali bar radi.
      */
     public void removeDuplicates() {
         for (int i = 0; i < sol.size(); i++) {
@@ -132,21 +132,23 @@ public class ExpressionBuilder {
     /**
      * F-ja koju koristimo da bi se izbegla ista resenja (mozda cak razlicita
      * naizgled, ali sustinski ista). Npr. a+b+c je za nas isto sto i a+c+b, pa
-     * se ovaj poslednji izraz ne bi ni formirao.
+     * se ovaj poslednji izraz ne bi ni formirao (za a>b>c prema compareTo()).
      */
-    private boolean asoc(Expression left, Expression right, char znak) {
-        if ((left.getNum() == 1) && (right.getNum() == 1)) {    // nema asocijativnosti ako oba izraza imaju po 1 clan
+    private boolean asoc(Expression left, Expression right, char sign) {
+        if (sign == '+' || sign == '*') {   // jer su komutativne, a ne zelimo i a+b i b+a, hocemo samo onaj redosled koji daje compareTo()
+            if (left.getSign() == sign) {
+                return !(left.getRight().compareTo(right) >= 0);
+            } else {
+                return !(left.compareTo(right) >= 0);
+            }
+        }
+        if (left.getNum() == 1) {   // ako levi izraz ima samo 1 clan
             return false;
         }
-        if (left.getSign() != znak) {   // nema asocijativnosti ako se radi sa razlicitim operacijama
+        if (left.getSign() != sign) {   // nema asocijativnosti ako se radi sa razlicitim operacijama
             return false;
         }
-        if (left.getRight().getIndexes().get(0) < right.getIndexes().get(0)) {  // pravi se npr. izraz (a+b)*c * d, ali se nece praviti izraz (a+b)*d * c
-            // bolje uporediti same brojeve a ne indexe!!!!!!!!
-            //if (left.getRight().getLeftValue() >= right.getLeftValue()) { // ??? >, >=...
-            return false;
-        }
-        return true;
+        return !(left.getRight().compareTo(right) >= 0);    // npr. uzimamo 3-2 - 1, ali ne i 3-1 - 2
     }
 
     /**
@@ -239,12 +241,33 @@ public class ExpressionBuilder {
                         }
                     }
                 }
+                //B+A
+                if ((exx2.getSign() != '-') && (exx1.getPriority() != 1)) {     // da se ne dodaje zbir ili razlika, vec ako se vec pravi neki zbir, da se dodaje samo jedan po jedan
+                    if (!asoc(exx2, exx1, '+')) {
+                        Expression e1 = new Expression(exx2, exx1, '+');
+                        exp.add(e1);
+                        if (newSolution(e1)) {
+                            return;
+                        }
+                    }
+                }
 
                 //A*B
                 if (((exx1.getValue() != 1) && (exx2.getValue() != 1)) // izbegava se mnozenje jedinicom
                         && (exx1.getSign() != '/') && (exx2.getPriority() != 2)) {  // slicno kao kod sabiranja...
                     if (!asoc(exx1, exx2, '*')) {
                         Expression e2 = new Expression(exx1, exx2, '*');
+                        exp.add(e2);
+                        if (newSolution(e2)) {
+                            return;
+                        }
+                    }
+                }
+                //B*A
+                if (((exx2.getValue() != 1) && (exx1.getValue() != 1)) // izbegava se mnozenje jedinicom
+                        && (exx2.getSign() != '/') && (exx1.getPriority() != 2)) {  // slicno kao kod sabiranja...
+                    if (!asoc(exx2, exx1, '*')) {
+                        Expression e2 = new Expression(exx2, exx1, '*');
                         exp.add(e2);
                         if (newSolution(e2)) {
                             return;

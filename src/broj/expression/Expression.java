@@ -2,7 +2,7 @@ package broj.expression;
 
 import java.util.*;
 
-public final class Expression {
+public final class Expression implements Comparable<Expression> {
 
     private String expression;  // izraz u formi stringa
     private Double value;       // brojna vrednost izraza
@@ -120,22 +120,6 @@ public final class Expression {
         }
         return this.expression;
     }
-    
-    // vraca vrednost najlevljeg broja u izrazu
-    public double getLeftValue() {
-        if (left == null) {
-            return value;
-        }
-        return left.getLeftValue();
-    }
-    
-    // vraca vrednost najdesnijeg broja u izrazu
-    public double getRightValue() {
-        if (right == null) {
-            return value;
-        }
-        return right.getRightValue();
-    }
 
     public double getValue() {
         return this.value;
@@ -201,9 +185,32 @@ public final class Expression {
         return s;
     }
 
-    //proveriti ovo malo i dodati override za hashcode()
-    /*@Override
-    public boolean equals(Object o) {
-        return this.expression.equals(((Expression) o).getExpression());
-    }*/
+    @Override
+    public int compareTo(Expression that) {
+        // BEFORE znaci da je this before that...
+        final int BEFORE = 1, EQUAL = 0, AFTER = -1;
+        
+        if (this == that) {
+            return EQUAL;
+        }
+        if (this.getExpression().equals(that.getExpression())) {
+            return EQUAL;
+        }
+        // izrazi su razliciti
+        if (this.getValue() > that.getValue()) {
+            return BEFORE;
+        }
+        if (this.getValue() < that.getValue()) {
+            return AFTER;
+        }
+        // izrazi imaju istu vrednost
+        if (this.getNum() > that.getNum()) {
+            return BEFORE;
+        }
+        if (this.getNum() < that.getNum()) {
+            return AFTER;
+        }
+        // izrazi imaju isti broj clanova
+        return this.getLeft().compareTo(that.getLeft());
+    }
 }
